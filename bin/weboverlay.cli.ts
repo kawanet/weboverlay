@@ -16,6 +16,7 @@ async function CLI(args: any) {
         log: args.log,
         cache: args.cache,
         port: args.port,
+        logger: console,
     } as WebOverlayOptions;
 
     return weboverlay(options);

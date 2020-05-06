@@ -16,12 +16,14 @@ export interface WebOverlayOptions {
     log?: string;
     cache?: string;
     port?: string;
+    logger?: { log: (message: string) => void };
 }
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
     const {log, port} = options;
     const sources = options.source || [];
+    const logger = options.logger || {log: () => null};
     let cache = options.cache;
     let count = 0;
 
@@ -32,9 +34,13 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     };
 
     const upstreamOptions: UpstreamOptions = {
-        logger: {log: (mess: string) => console.log("upstream: " + mess)},
+        logger: {log: (mess: string) => logger.log("upstream: " + mess)},
         httpAgent: new http.Agent(agentOptions),
         httpsAgent: new https.Agent(agentOptions),
+    };
+
+    const teeOptions: TeeOptions = {
+        logger: {log: (mess: string) => logger.log("cache: " + mess)},
     };
 
     const app = express();
@@ -48,7 +54,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (path[0] === "s") {
             try {
                 const mw = sed(path);
-                console.warn("transform: " + path);
+                logger.log("transform: " + path);
                 return app.use(mw);
             } catch (e) {
                 //
@@ -58,19 +64,19 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
             if (cache) {
-                console.warn("cache: " + cache);
+                logger.log("cache: " + cache);
                 app.use(express.static(cache));
-                app.use(tee(cache));
+                app.use(tee(cache, teeOptions));
                 cache = null; // cache applied only once
             }
 
-            console.warn("upstream: " + path);
+            logger.log("upstream: " + path);
             count++;
             return app.use(upstream(path, upstreamOptions));
         }
 
         // static document root
-        console.warn("local: " + path);
+        logger.log("local: " + path);
         count++;
         return app.use(express.static(path));
     });
@@ -80,7 +86,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     }
 
     if (port) {
-        app.listen(port, () => console.warn("port: " + port));
+        app.listen(port, () => logger.log("port: " + port));
     }
 
     return app;
