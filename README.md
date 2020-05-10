@@ -1,6 +1,6 @@
 # weboverlay
 
-Web server to serve mixed contents both on local and remote server
+Layered Hybrid Web Server: Local, Remote, and Transform
 
 ## SYNOPSIS
 
@@ -12,11 +12,11 @@ PATH=node_modules/.bin:$PATH
 # overlay multiple local document roots
 weboverlay ../repo1/htdocs ../repo2/htdocs ../repo3/htdocs
 
-# overlay local files and fallback remote content with cache
+# overlay local files and upstream remote server contents with cache
 weboverlay htdocs https://example.com --cache
 
 # rewrite remote content with sed-style transform
-weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --port=3000
+weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --port=3000 --json
 
 open http://127.0.0.1:3000/
 ```
@@ -24,21 +24,24 @@ open http://127.0.0.1:3000/
 ## SYNTAX
 
 ```sh
-weboverlay [s/regexp/replacement/g] [local...] [remote] [--cache=cached] [--log=tiny] [--port=3000]
+weboverlay [s/regexp/replacement/g] [^type=function] [htdocs...] [https://hostname] [--cache=cached] [--log=tiny] [--port=3000]
 ```
 
 - `s/regexp/replacement/g` - sed-style transform applied for every text contents.
-- `local` - path to local document root directory.
-- `remote` - URL to upstream server: `http://` or `https://`
+- `@text/html=s=>s.toLowerCase()` - custom transform function for given content type.
+- `htdocs` - path to local document root directory.
+- `https://host.name` - URL to upstream server: `http://` or `https://`
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--log=tiny` - morgan logging format: `combined`, `dev`, etc. (default: `tiny`)
 - `--port=3000` - port number to listen. (default: `3000`)
+- `--json` - prettify JSON (default: disabled)
 
 ## SEE ALSO
 
 - https://www.npmjs.com/package/express-sed
 - https://www.npmjs.com/package/express-tee
 - https://www.npmjs.com/package/express-upstream
+- https://www.npmjs.com/package/express-intercept
 
 ## LICENSE
 
