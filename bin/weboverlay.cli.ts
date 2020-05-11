@@ -11,15 +11,17 @@ const defaults = {
 };
 
 async function CLI(args: any) {
-    const options = {
-        basic: args.basic,
-        cache: args.cache,
-        json: args.json,
-        log: args.log,
-        logger: console,
-        port: args.port,
-        source: args["--"],
-    } as WebOverlayOptions;
+    const {basic, cache, json, log, port} = args;
+
+    const options: WebOverlayOptions = {cache, json, log, port};
+
+    // Basic authentication
+    if (basic) options.basic = basic.split(",");
+
+    // Logging
+    options.logger = console;
+
+    options.layers = args["--"];
 
     return weboverlay(options);
 }

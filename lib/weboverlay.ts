@@ -14,19 +14,19 @@ import {tee, TeeOptions} from "express-tee";
 import {upstream, UpstreamOptions} from "../../express-upstream";
 
 export interface WebOverlayOptions {
-    basic?: string;
+    basic?: string | string[];
     cache?: string;
     json?: number;
+    layers?: string[];
     log?: string;
     logger?: { log: (message: string) => void };
     port?: string;
-    source: string[];
 }
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
     const {basic, log, port} = options;
-    const sources = options.source || [];
+    const layers = options.layers || [];
     const logger = options.logger || {log: () => null};
     let cache = options.cache;
     let count = 0;
@@ -59,23 +59,36 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     if (basic) {
         const users = {} as { [base64: string]: boolean };
+        const list = ("string" === typeof basic) ? [basic] : basic as string[];
 
-        basic.split(/\s+|,/)
-            .filter(str => /:/.test(str))
+        // raw username:password pair
+        list.filter(str => str && /:/.test(str))
             .map(str => Buffer.from(str).toString("base64"))
             .forEach(str => users[str] = true);
 
-        logger.log("authentication: Basic " + Object.keys(users).join(" "));
+        // base64 encoded
+        list.filter(str => str && !/:/.test(str))
+            .forEach(str => users[str] = true);
+
+        logger.log("authentication: Basic");
 
         app.use(requestHandler().use((req, res, next) => {
             const sent = String(req.headers.authorization).replace(/^basic\s+/i, "");
             delete req.headers.authorization;
             if (users[sent]) return next();
-            res.status(401).header("WWW-Authenticate", 'Basic realm="enter username and password"').end();
+            res.status(401).header("WWW-Authenticate", 'Basic realm="username and password"').end();
         }));
     }
 
-    sources.forEach(path => {
+    layers.forEach(path => {
+        path = path.replace(/^\s+/g, "");
+        path = path.replace(/\s+$/g, "");
+
+        // comment
+        if (path[0] === "#") {
+            return logger.log(path);
+        }
+
         // sed-style transform
         if (path[0] === "s") {
             try {

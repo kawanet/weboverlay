@@ -8,15 +8,12 @@ const defaults = {
     port: "3000",
 };
 async function CLI(args) {
-    const options = {
-        basic: args.basic,
-        cache: args.cache,
-        json: args.json,
-        log: args.log,
-        logger: console,
-        port: args.port,
-        source: args["--"],
-    };
+    const { basic, cache, json, log, port } = args;
+    const options = { cache, json, log, port };
+    if (basic)
+        options.basic = basic.split(",");
+    options.logger = console;
+    options.layers = args["--"];
     return weboverlay_1.weboverlay(options);
 }
 CLI(argv(defaults)).catch(fatal);
