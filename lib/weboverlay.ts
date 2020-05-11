@@ -1,6 +1,6 @@
 // weboverlay.ts
 
-import {responseHandler} from "express-intercept";
+import {requestHandler, responseHandler} from "express-intercept";
 
 exports.weboverlay = weboverlay;
 
@@ -14,17 +14,18 @@ import {tee, TeeOptions} from "express-tee";
 import {upstream, UpstreamOptions} from "../../express-upstream";
 
 export interface WebOverlayOptions {
-    json?: number;
-    source: string[];
-    log?: string;
+    basic?: string;
     cache?: string;
-    port?: string;
+    json?: number;
+    log?: string;
     logger?: { log: (message: string) => void };
+    port?: string;
+    source: string[];
 }
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
-    const {log, port} = options;
+    const {basic, log, port} = options;
     const sources = options.source || [];
     const logger = options.logger || {log: () => null};
     let cache = options.cache;
@@ -50,6 +51,28 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     if (log) {
         app.use(morgan(log));
+    }
+
+    /**
+     * Basic authentication
+     */
+
+    if (basic) {
+        const users = {} as { [base64: string]: boolean };
+
+        basic.split(/\s+|,/)
+            .filter(str => /:/.test(str))
+            .map(str => Buffer.from(str).toString("base64"))
+            .forEach(str => users[str] = true);
+
+        console.log("authentication: Basic " + Object.keys(users).join(" "));
+
+        app.use(requestHandler().use((req, res, next) => {
+            const sent = String(req.headers.authorization).replace(/^basic\s+/i, "");
+            delete req.headers.authorization;
+            if (users[sent]) return next();
+            res.status(401).header("WWW-Authenticate", 'Basic realm="enter username and password"').end();
+        }));
     }
 
     sources.forEach(path => {

@@ -12,12 +12,13 @@ const defaults = {
 
 async function CLI(args: any) {
     const options = {
-        source: args["--"],
+        basic: args.basic,
+        cache: args.cache,
         json: args.json,
         log: args.log,
-        cache: args.cache,
-        port: args.port,
         logger: console,
+        port: args.port,
+        source: args["--"],
     } as WebOverlayOptions;
 
     return weboverlay(options);

@@ -9,12 +9,13 @@ const defaults = {
 };
 async function CLI(args) {
     const options = {
-        source: args["--"],
+        basic: args.basic,
+        cache: args.cache,
         json: args.json,
         log: args.log,
-        cache: args.cache,
-        port: args.port,
         logger: console,
+        port: args.port,
+        source: args["--"],
     };
     return weboverlay_1.weboverlay(options);
 }
