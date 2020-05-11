@@ -65,7 +65,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             .map(str => Buffer.from(str).toString("base64"))
             .forEach(str => users[str] = true);
 
-        console.log("authentication: Basic " + Object.keys(users).join(" "));
+        logger.log("authentication: Basic " + Object.keys(users).join(" "));
 
         app.use(requestHandler().use((req, res, next) => {
             const sent = String(req.headers.authorization).replace(/^basic\s+/i, "");
