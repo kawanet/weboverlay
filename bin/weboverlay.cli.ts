@@ -11,9 +11,9 @@ const defaults = {
 };
 
 async function CLI(args: any) {
-    const {basic, cache, json, log, port} = args;
+    const {basic, cache, compress, json, log, port} = args;
 
-    const options: WebOverlayOptions = {cache, json, log, port};
+    const options: WebOverlayOptions = {cache, compress, json, log, port};
 
     // Basic authentication
     if (basic) options.basic = basic.split(",");

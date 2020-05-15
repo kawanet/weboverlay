@@ -11,10 +11,11 @@
   ],
   "dependencies": {
     "express": "^4.17.1",
-    "express-intercept": "github:kawanet/express-intercept",
-    "express-sed": "github:kawanet/express-sed",
-    "express-tee": "github:kawanet/express-tee",
-    "express-upstream": "github:kawanet/express-upstream",
+    "express-brotli": "git+https://github.com/kawanet/express-brotli.git",
+    "express-intercept": "git+https://github.com/kawanet/express-intercept.git",
+    "express-sed": "git+https://github.com/kawanet/express-sed.git",
+    "express-tee": "git+https://github.com/kawanet/express-tee.git",
+    "express-upstream": "git+https://github.com/kawanet/express-upstream.git",
     "morgan": "^1.10.0",
     "process.argv": "^0.1.0"
   },

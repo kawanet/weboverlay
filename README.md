@@ -16,7 +16,10 @@ weboverlay ../repo1/htdocs ../repo2/htdocs ../repo3/htdocs
 weboverlay htdocs https://example.com --cache
 
 # rewrite remote content with sed-style transform
-weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --port=3000 --json
+weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --json
+
+# replace product names on a corporate website 
+weboverlay "s/MacBook/Surface/g" https://www.apple.com --cache=cached --port=3000
 
 open http://127.0.0.1:3000/
 ```
@@ -32,6 +35,8 @@ weboverlay [s/regexp/replacement/g] [^type=function] [htdocs...] [https://hostna
 - `htdocs` - path to local document root directory.
 - `https://upstream.host` - URL to remote upstream server: `http://` or `https://`
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
+- `--compress=br` - force compression with Brotli (default: auto)
+- `--compress=identity` - no compression
 - `--log=tiny` - morgan logging format: `combined`, `dev`, etc. (default: `tiny`)
 - `--port=3000` - port number to listen. (default: `3000`)
 - `--json` - prettify JSON (default: disabled)

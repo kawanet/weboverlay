@@ -1,21 +1,20 @@
 // weboverlay.ts
 
-import {requestHandler, responseHandler} from "express-intercept";
-
-exports.weboverlay = weboverlay;
-
 import * as express from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
 
+import * as brotli from "express-brotli";
+import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
 import {tee, TeeOptions} from "express-tee";
-import {upstream, UpstreamOptions} from "../../express-upstream";
+import {upstream, UpstreamOptions} from "express-upstream";
 
 export interface WebOverlayOptions {
     basic?: string | string[];
     cache?: string;
+    compress?: string;
     json?: number;
     layers?: string[];
     log?: string;
@@ -25,11 +24,12 @@ export interface WebOverlayOptions {
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
-    const {basic, log, port} = options;
+    const {basic, cache, compress, json, log, port} = options;
     const layers = options.layers || [];
     const logger = options.logger || {log: () => null};
-    let cache = options.cache;
-    let count = 0;
+    let locals = 0;
+    let remotes = 0;
+    let transforms = 0;
 
     const agentOptions: http.AgentOptions = {
         keepAlive: true,
@@ -80,6 +80,21 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         }));
     }
 
+    /**
+     * Compression
+     */
+
+    if ("string" === typeof compress) {
+        logger.log("compress: " + compress);
+        app.use(requestHandler().getRequest(req => req.headers["accept-encoding"] = compress));
+    }
+
+    app.use(brotli.compress());
+
+    /**
+     * Layers
+     */
+
     layers.forEach(path => {
         path = path.replace(/^\s+/g, "");
         path = path.replace(/\s+$/g, "");
@@ -94,6 +109,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             try {
                 const mw = sed(path);
                 logger.log("transform: " + path);
+                transforms++;
                 return app.use(mw);
             } catch (e) {
                 //
@@ -111,39 +127,43 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             logger.log("function: " + code);
             const fn = eval(code);
             if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
+            transforms++;
 
             return app.use(responseHandler()
                 .if(res => re.test(String(res.getHeader("content-type"))))
                 .replaceString(str => fn(str)));
         }
 
-        if (!count && options.json >= 0) {
+        if (locals + remotes === 0 && json >= 0) {
             app.use(responseHandler()
                 .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
-                .replaceString(str => JSON.stringify(JSON.parse(str), null, options.json)));
+                .replaceString(str => JSON.stringify(JSON.parse(str), null, json)));
         }
 
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
-            if (cache) {
+            if (!remotes) {
                 logger.log("cache: " + cache);
                 app.use(express.static(cache));
                 app.use(tee(cache, teeOptions));
-                cache = null; // cache applied only once
+            }
+
+            if (!remotes && transforms) {
+                app.use(brotli.decompress());
             }
 
             logger.log("upstream: " + path);
-            count++;
+            remotes++;
             return app.use(upstream(path, upstreamOptions));
         }
 
         // static document root
         logger.log("local: " + path);
-        count++;
+        locals++;
         return app.use(express.static(path));
     });
 
-    if (!count) {
+    if (locals + remotes === 0) {
         throw new Error("No content source applied");
     }
 
