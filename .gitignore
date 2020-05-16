@@ -1,12 +1,14 @@
+*.tgz
 *~
 .DS_Store
 .Thumbs
 ._*
 .idea/
 .vscode/
+cached/
 node_modules/
 npm-debug.log*
 package-lock.json
-cached/
+package/
 test/*.js
 ~$*

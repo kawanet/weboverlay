@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: Local, Remote, and Transform",
-  "version": "0.1.0",
+  "version": "0.8.0",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
@@ -11,11 +11,11 @@
   ],
   "dependencies": {
     "express": "^4.17.1",
-    "express-compress": "git+https://github.com/kawanet/express-compress.git",
-    "express-intercept": "git+https://github.com/kawanet/express-intercept.git",
-    "express-sed": "git+https://github.com/kawanet/express-sed.git",
-    "express-tee": "git+https://github.com/kawanet/express-tee.git",
-    "express-upstream": "git+https://github.com/kawanet/express-upstream.git",
+    "express-compress": "^0.8.0",
+    "express-intercept": "^0.8.0",
+    "express-sed": "^0.8.0",
+    "express-tee": "^0.8.0",
+    "express-upstream": "^0.8.0",
     "morgan": "^1.10.0",
     "process.argv": "^0.1.0"
   },
@@ -34,7 +34,7 @@
     "README.md",
     "bin/",
     "lib/",
-    "util/"
+    "types/weboverlay.d.ts"
   ],
   "homepage": "https://github.com/kawanet/weboverlay#readme",
   "keywords": [
@@ -58,5 +58,6 @@
     "mocha": "./node_modules/.bin/mocha -R spec test/*.js",
     "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
-  }
+  },
+  "typings": "./types/weboverlay.d.ts"
 }
