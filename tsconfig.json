@@ -1,7 +1,8 @@
 {
   "include": [
     "./bin",
-    "./lib"
+    "./lib",
+    "./test"
   ],
   "compilerOptions": {
     "module": "commonjs",
@@ -15,7 +16,7 @@
     "strictNullChecks": false,
     "target": "ES2018",
     "types": [
-      "express",
+      "mocha",
       "node"
     ]
   }

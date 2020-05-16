@@ -21,8 +21,12 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.6",
+    "@types/mocha": "^7.0.2",
     "@types/morgan": "^1.9.0",
     "@types/node": "^13.13.5",
+    "@types/supertest": "^2.0.9",
+    "mocha": "^7.1.2",
+    "supertest": "^4.0.2",
     "typescript": "^3.8.3"
   },
   "files": [
@@ -47,9 +51,12 @@
     "url": "git+https://github.com/kawanet/weboverlay.git"
   },
   "scripts": {
+    "build": "npm run build-lib && npm run build-types",
+    "build-lib": "./node_modules/.bin/tsc -p .",
+    "build-types": "./node_modules/.bin/tsc -p types",
     "fixpack": "fixpack",
-    "github": "github",
-    "tsc": "tsc -p . && tsc -p types",
+    "mocha": "./node_modules/.bin/mocha -R spec test/*.js",
+    "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
   }
 }
