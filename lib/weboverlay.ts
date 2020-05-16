@@ -134,12 +134,20 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                 .replaceString(str => fn(str)));
         }
 
-        // /path/to/exclude:404
-        if (/^\/.*:[1-5]\d\d$/.test(path)) {
-            const statusCode = +path.substr(-3);
-            path = path.substr(0, path.length - 4);
-            logger.log("statusCode: " + path + " => " + statusCode);
-            app.use(path, requestHandler().use((req, res) => res.status(statusCode).send("")));
+        let mount = "/";
+        let target: string;
+
+        if (path[0] === "/") {
+            const sp = path.split("=");
+            if (sp.length === 2) {
+                [mount, target] = sp;
+            }
+        }
+
+        // /path/to/exclude=404
+        if (/^[1-5]\d\d$/.test(target)) {
+            logger.log("statusCode: " + mount + " => " + target);
+            app.use(path, requestHandler().use((req, res) => res.status(+target).send("")));
             return;
         }
 
@@ -151,7 +159,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
-            if (!remotes) {
+            if (!remotes && cache) {
                 logger.log("cache: " + cache);
                 app.use(express.static(cache));
                 app.use(tee(cache, teeOptions));
@@ -167,9 +175,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         }
 
         // static document root
-        logger.log("local: " + path);
+        if (target == null) target = path;
+        logger.log("local: " + mount + " => " + target);
         locals++;
-        return app.use(express.static(path));
+        return app.use(mount, express.static(target));
     });
 
     if (locals + remotes === 0) {
