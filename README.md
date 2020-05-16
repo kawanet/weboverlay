@@ -2,6 +2,9 @@
 
 Layered Hybrid Web Server: Local, Remote, and Transform
 
+[![Node.js CI](https://github.com/kawanet/weboverlay/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/weboverlay/actions/)
+[![npm version](https://badge.fury.io/js/weboverlay.svg)](https://www.npmjs.com/package/weboverlay)
+
 ## SYNOPSIS
 
 ```sh
@@ -44,10 +47,11 @@ weboverlay [s/regexp/replacement/g] [^type=function] [htdocs...] [https://hostna
 
 ## SEE ALSO
 
+- https://www.npmjs.com/package/express-compress
+- https://www.npmjs.com/package/express-intercept
 - https://www.npmjs.com/package/express-sed
 - https://www.npmjs.com/package/express-tee
 - https://www.npmjs.com/package/express-upstream
-- https://www.npmjs.com/package/express-intercept
 
 ## LICENSE
 
