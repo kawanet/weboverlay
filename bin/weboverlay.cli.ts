@@ -13,7 +13,7 @@ const defaults = {
 async function CLI(args: any) {
     const {basic, cache, compress, json, log, port} = args;
 
-    const options: WebOverlayOptions = {cache, compress, json, log, port};
+    const options: WebOverlayOptions = {cache, compress, json, log};
 
     // Basic authentication
     if (basic) options.basic = basic.split(",");
@@ -23,7 +23,7 @@ async function CLI(args: any) {
 
     options.layers = args["--"];
 
-    return weboverlay(options);
+    weboverlay(options).listen(port, () => options.logger.log("port: " + port));
 }
 
 CLI(argv(defaults)).catch(fatal);

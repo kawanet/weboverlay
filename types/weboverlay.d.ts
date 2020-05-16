@@ -9,6 +9,5 @@ export interface WebOverlayOptions {
     logger?: {
         log: (message: string) => void;
     };
-    port?: string;
 }
 export declare function weboverlay(options: WebOverlayOptions): express.Express;

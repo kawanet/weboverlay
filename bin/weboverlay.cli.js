@@ -9,12 +9,12 @@ const defaults = {
 };
 async function CLI(args) {
     const { basic, cache, compress, json, log, port } = args;
-    const options = { cache, compress, json, log, port };
+    const options = { cache, compress, json, log };
     if (basic)
         options.basic = basic.split(",");
     options.logger = console;
     options.layers = args["--"];
-    return weboverlay_1.weboverlay(options);
+    weboverlay_1.weboverlay(options).listen(port, () => options.logger.log("port: " + port));
 }
 CLI(argv(defaults)).catch(fatal);
 function fatal(e) {

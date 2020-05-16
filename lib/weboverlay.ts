@@ -19,12 +19,11 @@ export interface WebOverlayOptions {
     layers?: string[];
     log?: string;
     logger?: { log: (message: string) => void };
-    port?: string;
 }
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
-    const {basic, cache, compress, json, log, port} = options;
+    const {basic, cache, compress, json, log} = options;
     const layers = options.layers || [];
     const logger = options.logger || {log: () => null};
     let locals = 0;
@@ -206,10 +205,6 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     if (locals + remotes === 0) {
         throw new Error("No content source applied");
-    }
-
-    if (port) {
-        app.listen(port, () => logger.log("port: " + port));
     }
 
     return app;
