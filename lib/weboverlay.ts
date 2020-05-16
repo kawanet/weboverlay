@@ -134,6 +134,15 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                 .replaceString(str => fn(str)));
         }
 
+        // /path/to/exclude:404
+        if (/^\/.*:[1-5]\d\d$/.test(path)) {
+            const statusCode = +path.substr(-3);
+            path = path.substr(0, path.length - 4);
+            logger.log("statusCode: " + path + " => " + statusCode);
+            app.use(path, requestHandler().use((req, res) => res.status(statusCode).send("")));
+            return;
+        }
+
         if (locals + remotes === 0 && json >= 0) {
             app.use(responseHandler()
                 .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
