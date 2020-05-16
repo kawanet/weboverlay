@@ -169,6 +169,20 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                 app.use(brotli.decompress());
             }
 
+            // redirection
+            const host = path.split("/")[2];
+            app.use(responseHandler()
+                .if(res => (res.statusCode === 301 || res.statusCode === 302))
+                .getResponse(res => {
+                    const location = String(res.getHeader("location"));
+                    const destHost = location.split("/")[2];
+                    const destPath = location.replace(/^https?:\/\/[^\/]+\/?/, "/");
+                    if (destHost === host && destPath !== location) {
+                        res.setHeader("location", destPath)
+                        logger.log("location: " + destPath);
+                    }
+                }));
+
             logger.log("upstream: " + path);
             remotes++;
             return app.use(upstream(path, upstreamOptions));
