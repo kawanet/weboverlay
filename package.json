@@ -11,7 +11,7 @@
   ],
   "dependencies": {
     "express": "^4.17.1",
-    "express-brotli": "git+https://github.com/kawanet/express-brotli.git",
+    "express-compress": "git+https://github.com/kawanet/express-compress.git",
     "express-intercept": "git+https://github.com/kawanet/express-intercept.git",
     "express-sed": "git+https://github.com/kawanet/express-sed.git",
     "express-tee": "git+https://github.com/kawanet/express-tee.git",

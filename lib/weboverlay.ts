@@ -5,7 +5,7 @@ import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
 
-import * as brotli from "express-brotli";
+import * as brotli from "express-compress";
 import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
 import {tee, TeeOptions} from "express-tee";
