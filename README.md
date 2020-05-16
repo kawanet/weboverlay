@@ -27,31 +27,39 @@ weboverlay "s/MacBook/Surface/g" https://www.apple.com --cache=cached --port=300
 open http://127.0.0.1:3000/
 ```
 
-## SYNTAX
+## CLI
 
 ```sh
-weboverlay [s/regexp/replacement/g] [^type=function] [htdocs...] [https://hostname] [--cache=cached] [--log=tiny] [--port=3000] [--auth=user:password]
+weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostname] [--options...]
 ```
 
 - `s/regexp/replacement/g` - sed-style transform applied for every text contents.
 - `@text/html=s=>s.toLowerCase()` - custom transform function for given content type.
+- `/path/to/not/found=404` - path to force 404 Not Found.
 - `htdocs` - path to local document root directory.
 - `https://upstream.host` - URL to remote upstream server: `http://` or `https://`
+- `--basic=user:password` - Basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--compress=br` - force compression with Brotli (default: auto)
 - `--compress=identity` - no compression
+- `--json` - prettify JSON (default: disabled)
 - `--log=tiny` - morgan logging format: `combined`, `dev`, etc. (default: `tiny`)
 - `--port=3000` - port number to listen. (default: `3000`)
-- `--json` - prettify JSON (default: disabled)
-- `--basic=user:password` - Basic authentication
+
+## API
+
+See TypeScript declaration
+[weboverlay.d.ts](https://github.com/kawanet/weboverlay/blob/master/types/weboverlay.d.ts)
+for more detail.
 
 ## SEE ALSO
 
-- https://www.npmjs.com/package/express-compress
-- https://www.npmjs.com/package/express-intercept
-- https://www.npmjs.com/package/express-sed
-- https://www.npmjs.com/package/express-tee
-- https://www.npmjs.com/package/express-upstream
+- https://github.com/kawanet/express-compress
+- https://github.com/kawanet/express-intercept
+- https://github.com/kawanet/express-sed
+- https://github.com/kawanet/express-tee
+- https://github.com/kawanet/express-upstream
+- https://github.com/kawanet/weboverlay
 
 ## LICENSE
 
