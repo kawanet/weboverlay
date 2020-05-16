@@ -92,6 +92,15 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     app.use(brotli.compress());
 
     /**
+     * HEAD fakes GET
+     */
+
+    app.use(requestHandler().for(req => req.method === "HEAD").use(
+        requestHandler().getRequest(req => req.method = "GET"),
+        responseHandler().getRequest(req => req.method = "HEAD"),
+    ));
+
+    /**
      * Layers
      */
 
