@@ -8,8 +8,8 @@ const defaults = {
     port: "3000",
 };
 async function CLI(args) {
-    const { basic, cache, json, log, port } = args;
-    const options = { cache, json, log, port };
+    const { basic, cache, compress, json, log, port } = args;
+    const options = { cache, compress, json, log, port };
     if (basic)
         options.basic = basic.split(",");
     options.logger = console;
