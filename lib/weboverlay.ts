@@ -114,13 +114,18 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // sed-style transform
         if (path[0] === "s") {
-            try {
-                const mw = sed(path);
-                logger.log("transform: " + path);
-                transforms++;
-                return app.use(mw);
-            } catch (e) {
-                //
+            const delim = path[1];
+            if (path.split(delim).length > 3) {
+                const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
+                logger.log("transform: " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
+                try {
+                    const mw = sed(path);
+                    transforms++;
+                    return app.use(mw);
+                } catch (e) {
+                    logger.log("transform: " + (e && e.message || e));
+                    return;
+                }
             }
         }
 
