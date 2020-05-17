@@ -42,9 +42,27 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--compress=br` - force compression with Brotli (default: auto)
 - `--compress=identity` - no compression
+- `--config=weboverlay.yml` - load configuration from YAML file.
 - `--json` - prettify JSON (default: disabled)
 - `--log=tiny` - morgan logging format: `combined`, `dev`, etc. (default: `tiny`)
 - `--port=3000` - port number to listen. (default: `3000`)
+
+## YAML
+
+```yaml
+layers:
+    - s/regexp/replacement/g
+    - @text/html=s=>s.toLowerCase()
+    - /path/to/not/found=404
+    - htdocs
+    - https://upstream.host
+basic:
+    - user:password
+cache: cached
+json: true
+log: tiny
+port: 3000
+```
 
 ## API
 

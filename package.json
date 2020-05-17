@@ -17,7 +17,8 @@
     "express-tee": "^0.8.0",
     "express-upstream": "^0.8.0",
     "morgan": "^1.10.0",
-    "process.argv": "^0.1.0"
+    "process.argv": "^0.1.0",
+    "yaml": "^1.10.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.6",
