@@ -7,34 +7,39 @@ const argv = require("process.argv")(process.argv.slice(2));
 
 import {weboverlay, WebOverlayOptions} from "../lib/weboverlay";
 
-const defaults = {
+interface CLIOptions extends WebOverlayOptions {
+    config?: string;
+    logfile?: string;
+}
+
+const defaults: WebOverlayOptions = {
     log: "tiny",
     // cache: "cached",
     port: "3000",
 };
 
-async function CLI(args: any) {
+async function CLI(args: CLIOptions) {
     const {basic, cache, compress, json, log, port, config} = args;
 
-    const options: WebOverlayOptions = {cache, compress, json, log};
+    const options: CLIOptions = {cache, compress, json, log};
 
     // Basic authentication
     if ("string" === typeof basic) options.basic = basic.split(",");
 
-    options.layers = args["--"] || [];
+    options.layers = (args as any)["--"] || [];
 
     // --config=weboverlay.yml
     if (config) {
         const yaml = await fs.promises.readFile(config, "utf-8");
-        const data = YAML.parse(yaml);
-        Object.keys(data).forEach(key => (options as any)[key] = data[key]);
+        const data = YAML.parse(yaml) as CLIOptions;
+        Object.keys(data).forEach((key: keyof CLIOptions) => (options as any)[key] = data[key]);
     }
 
     /**
      * --logfile=weboverlay.log
      */
 
-    const logfile = args.logfile || (options as any).logfile;
+    const logfile = args.logfile || options.logfile;
     if (logfile) {
         const writable = fs.createWriteStream(logfile, {flags: "a"});
         options.logger = {log: (message: string) => writable.write(String(message).replace(/\n*$/, "\n"))};

@@ -19,6 +19,7 @@ export interface WebOverlayOptions {
     layers?: string[];
     log?: string;
     logger?: { log: (message: string) => void };
+    port?: string;
 }
 
 export function weboverlay(options: WebOverlayOptions): express.Express {

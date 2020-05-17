@@ -18,7 +18,7 @@ async function CLI(args) {
     if (config) {
         const yaml = await fs.promises.readFile(config, "utf-8");
         const data = YAML.parse(yaml);
-        Object.keys(data).forEach(key => options[key] = data[key]);
+        Object.keys(data).forEach((key) => options[key] = data[key]);
     }
     const logfile = args.logfile || options.logfile;
     if (logfile) {
