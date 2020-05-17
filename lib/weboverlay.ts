@@ -44,6 +44,10 @@ export interface WebOverlayOptions {
      * port number to listen
      */
     port?: string;
+    /**
+     * `sed`-style transforms applied for every text contents
+     */
+    sed?: string;
 }
 
 /**
@@ -134,6 +138,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     ));
 
     /**
+     * `sed`-style transform
+     */
+
+    if (options.sed) {
+        applySed(options.sed);
+    }
+
+    /**
      * Layers
      */
 
@@ -150,16 +162,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (path[0] === "s") {
             const delim = path[1];
             if (path.split(delim).length > 3) {
-                const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
-                logger.log("transform: " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
-                try {
-                    const mw = sed(path);
-                    transforms++;
-                    return app.use(mw);
-                } catch (e) {
-                    logger.log("transform: " + (e && e.message || e));
-                    return;
-                }
+                return applySed(path);
             }
         }
 
@@ -251,4 +254,18 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     }
 
     return app;
+
+    // sed-style transform
+    function applySed(path: string) {
+        const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
+        logger.log("transform: " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
+        try {
+            const mw = sed(path);
+            transforms++;
+            return app.use(mw);
+        } catch (e) {
+            logger.log("transform: " + (e && e.message || e));
+            return;
+        }
+    }
 }

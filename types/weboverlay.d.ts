@@ -34,6 +34,10 @@ export interface WebOverlayOptions {
      * port number to listen
      */
     port?: string;
+    /**
+     * `sed`-style transforms applied for every text contents
+     */
+    sed?: string;
 }
 /**
  * Layered Hybrid Web Server: Local, Remote, and Transform

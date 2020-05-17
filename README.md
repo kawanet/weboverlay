@@ -33,8 +33,8 @@ open http://127.0.0.1:3000/
 weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostname] [--options...]
 ```
 
-- `s/regexp/replacement/g` - sed-style transform applied for every text contents.
-- `@text/html=s=>s.toLowerCase()` - custom transform function for given content type.
+- `s/regexp/replacement/g` - `sed`-style transforms applied for every text contents
+- `@text/html=s=>s.toLowerCase()` - custom transform function for given content type
 - `/path/to/not/found=404` - path to always respond 404 Not Found
 - `htdocs` - path to local document root directory
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
@@ -47,6 +47,7 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 - `--log=tiny` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
 - `--logfile=weboverlay.log` - path to write log
 - `--port=3000` - port number to listen (default: `3000`)
+- `--sed="s/regexp/replacement/g"` - another way to apply `sed`-style transform
 
 ## YAML
 
@@ -64,6 +65,8 @@ json: true
 log: tiny
 logfile: weboverlay.log
 port: 3000
+sed: |
+    s/regexp/replacement/g
 ```
 
 ## API
