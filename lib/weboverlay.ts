@@ -74,6 +74,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         logger: {log: (mess: string) => logger.log("upstream: " + mess)},
         httpAgent: new http.Agent(agentOptions),
         httpsAgent: new https.Agent(agentOptions),
+        ignoreStatus: /404/,
     };
 
     const teeOptions: TeeOptions = {
@@ -210,9 +211,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
             if (!remotes && cache) {
-                logger.log("cache: " + cache);
-                app.use(express.static(cache));
-                app.use(tee(cache, teeOptions));
+                const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
+                logger.log("cache: " + cacheDir);
+                app.use(express.static(cacheDir));
+                app.use(tee(cacheDir, teeOptions));
             }
 
             if (!remotes && transforms) {
