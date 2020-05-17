@@ -15,6 +15,7 @@ npm install -g weboverlay
 weboverlay ../repo1/htdocs ../repo2/htdocs ../repo3/htdocs
 
 # overlay local files and upstream remote origin server contents with cache
+weboverlay htdocs https://example.com --cache
 
 # rewrite remote content with sed-style transform
 weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --json
@@ -34,18 +35,18 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 
 - `s/regexp/replacement/g` - sed-style transform applied for every text contents.
 - `@text/html=s=>s.toLowerCase()` - custom transform function for given content type.
-- `/path/to/not/found=404` - path to force 404 Not Found.
-- `htdocs` - path to local document root directory.
-- `https://upstream.host` - URL to remote upstream server: `http://` or `https://`
-- `--basic=user:password` - Basic authentication
+- `/path/to/not/found=404` - path to always respond 404 Not Found
+- `htdocs` - path to local document root directory
+- `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
+- `--basic=user:password` - username and password for basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
-- `--compress=br` - force compression with Brotli (default: auto)
+- `--compress=br` - force compression with Brotli
 - `--compress=identity` - no compression
-- `--config=weboverlay.yml` - load configuration from YAML file.
-- `--json` - prettify JSON (default: disabled)
+- `--config=weboverlay.yml` - path to load configuration in YAML
+- `--json` - prettify JSON response (default: disabled)
 - `--log=tiny` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
-- `--logfile=weboverlay.log` - path to log file
-- `--port=3000` - port number to listen. (default: `3000`)
+- `--logfile=weboverlay.log` - path to write log
+- `--port=3000` - port number to listen (default: `3000`)
 
 ## YAML
 

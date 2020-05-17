@@ -14,7 +14,6 @@ interface CLIOptions extends WebOverlayOptions {
 
 const defaults: WebOverlayOptions = {
     log: "tiny",
-    // cache: "cached",
     port: "3000",
 };
 
