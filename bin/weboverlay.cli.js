@@ -10,8 +10,8 @@ const defaults = {
     port: "3000",
 };
 async function CLI(args) {
-    const { basic, cache, compress, json, log, port, config } = args;
-    const options = { cache, compress, json, log };
+    const { basic, cache, compress, config, json, log, port } = args;
+    const options = { cache, compress, json, log, port };
     if ("string" === typeof basic)
         options.basic = basic.split(",");
     options.layers = args["--"] || [];
@@ -28,7 +28,7 @@ async function CLI(args) {
     else {
         options.logger = console;
     }
-    weboverlay_1.weboverlay(options).listen(port, () => options.logger.log("port: " + port));
+    weboverlay_1.weboverlay(options);
 }
 CLI(argv(defaults)).catch(fatal);
 function fatal(e) {
