@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import {promises as fs} from "fs";
+import * as fs from "fs";
 import * as YAML from "yaml";
 
 const argv = require("process.argv")(process.argv.slice(2));
@@ -25,13 +25,22 @@ async function CLI(args: any) {
 
     // --config=weboverlay.yml
     if (config) {
-        const yaml = await fs.readFile(config, "utf-8");
+        const yaml = await fs.promises.readFile(config, "utf-8");
         const data = YAML.parse(yaml);
         Object.keys(data).forEach(key => (options as any)[key] = data[key]);
     }
 
-    // Logging
-    options.logger = console;
+    /**
+     * --logfile=weboverlay.log
+     */
+
+    const logfile = args.logfile || (options as any).logfile;
+    if (logfile) {
+        const writable = fs.createWriteStream(logfile, {flags: "a"});
+        options.logger = {log: (message: string) => writable.write(String(message).replace(/\n*$/, "\n"))};
+    } else {
+        options.logger = console;
+    }
 
     weboverlay(options).listen(port, () => options.logger.log("port: " + port));
 }

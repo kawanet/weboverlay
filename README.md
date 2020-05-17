@@ -44,7 +44,8 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 - `--compress=identity` - no compression
 - `--config=weboverlay.yml` - load configuration from YAML file.
 - `--json` - prettify JSON (default: disabled)
-- `--log=tiny` - morgan logging format: `combined`, `dev`, etc. (default: `tiny`)
+- `--log=tiny` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
+- `--logfile=weboverlay.log` - path to log file
 - `--port=3000` - port number to listen. (default: `3000`)
 
 ## YAML
@@ -61,6 +62,7 @@ basic:
 cache: cached
 json: true
 log: tiny
+logfile: weboverlay.log
 port: 3000
 ```
 
