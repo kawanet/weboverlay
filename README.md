@@ -8,15 +8,13 @@ Layered Hybrid Web Server: Local, Remote, and Transform
 ## SYNOPSIS
 
 ```sh
-npm init
-npm --save weboverlay
-PATH=node_modules/.bin:$PATH
+# install
+npm install -g weboverlay
 
-# overlay multiple local document roots
+# overlay multiple local document root paths
 weboverlay ../repo1/htdocs ../repo2/htdocs ../repo3/htdocs
 
-# overlay local files and upstream remote server contents with cache
-weboverlay htdocs https://example.com --cache
+# overlay local files and upstream remote origin server contents with cache
 
 # rewrite remote content with sed-style transform
 weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cached --log=dev --json
@@ -24,6 +22,7 @@ weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cach
 # replace product names on a corporate website 
 weboverlay "s/MacBook/Surface/g" https://www.apple.com --cache=cached --port=3000
 
+# open browser
 open http://127.0.0.1:3000/
 ```
 
