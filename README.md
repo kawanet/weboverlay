@@ -45,26 +45,44 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 - `--config=weboverlay.yml` - path to load configuration in YAML
 - `--json` - prettify JSON response (default: disabled)
 - `--log=tiny` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
-- `--logfile=weboverlay.log` - path to write log
+- `--logfile=weboverlay.log` - path to write log (default: STDOUT)
 - `--port=3000` - port number to listen (default: `3000`)
 - `--sed="s/regexp/replacement/g"` - another way to apply `sed`-style transform
 
 ## YAML
 
 ```yaml
+# content source layers: Local, Remote, and Transform
 layers:
     - s/regexp/replacement/g
     - @text/html=s=>s.toLowerCase()
     - /path/to/not/found=404
     - htdocs
     - https://upstream.host
+
+# username and password for basic authentication
 basic:
     - user:password
+
+# path to directory to cache remote content (default: disabled)
 cache: cached
+
+# no compression
+compress: identity
+
+# prettify JSON response (default: disabled)
 json: true
+
+# morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
 log: tiny
+
+# path to write log (default: STDOUT)
 logfile: weboverlay.log
+
+# port number to listen (default: `3000`)
 port: 3000
+
+# another way to apply `sed`-style transforms
 sed: |
     s/regexp/replacement/g
 ```
