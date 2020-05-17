@@ -46,10 +46,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         logger: {log: (mess: string) => logger.log("cache: " + mess)},
     };
 
+    const morganOptions: morgan.Options = {
+        stream: {write: (message: string) => logger.log(String(message).replace(/\n+$/, ""))}
+    };
+
     const app = express();
 
     if (log) {
-        app.use(morgan(log));
+        app.use(morgan(log, morganOptions));
     }
 
     /**
