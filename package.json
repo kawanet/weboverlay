@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: Local, Remote, and Transform",
-  "version": "0.8.1",
+  "version": "0.8.3",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
@@ -13,9 +13,9 @@
     "express": "^4.17.1",
     "express-compress": "^0.8.0",
     "express-intercept": "^0.8.0",
-    "express-sed": "^0.8.0",
-    "express-tee": "^0.8.0",
-    "express-upstream": "^0.8.0",
+    "express-sed": "^0.8.3",
+    "express-tee": "^0.8.1",
+    "express-upstream": "^0.8.2",
     "morgan": "^1.10.0",
     "process.argv": "^0.1.0",
     "yaml": "^1.10.0"
