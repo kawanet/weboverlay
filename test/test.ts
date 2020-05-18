@@ -9,7 +9,7 @@ const TITLE = __filename.split("/").pop();
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
         // logger: console,
-        log: "tiny",
+        // log: "tiny",
         layers: [
             // apply for any text
             "s/Hello/Hi/",
