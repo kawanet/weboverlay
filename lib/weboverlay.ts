@@ -167,14 +167,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             }
         }
 
-        // @text/html=s=>s.toLowerCase()
-        // @text/html=require('jaconv').toHanAscii
-        if (path[0] === "@") {
-            const type = path.substr(1).split("=").shift();
-            const esc = type.replace(/(\W)/g, "\\$1").replace(/\\,/g, "|");
-            const re = new RegExp(`^(${esc})`);
-            const code = path.substr(type.length + 2);
-            logger.log("type: " + re);
+        // html(s=>s.toLowerCase())
+        // text(require('jaconv').toHanAscii)
+        if (/^\w.*\(.+\)$/.test(path)) {
+            const type = path.replace(/\(.*$/, "");
+            const esc = type.replace(/(\W)/g, "\\$1");
+            const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
+            const code = path.replace(/^[^(]+/, "");
+            logger.log("type: " + type);
             logger.log("function: " + code);
             const fn = eval(code);
             if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);

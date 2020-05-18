@@ -30,13 +30,14 @@ open http://127.0.0.1:3000/
 ## CLI
 
 ```sh
-weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostname] [--options...]
+weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostname] [--options...]
 ```
 
 - `s/regexp/replacement/g` - `sed`-style transforms applied for every text contents
-- `@text/html=s=>s.toLowerCase()` - custom transform function for given content type
-- `/path/to/not/found=404` - path to always respond 404 Not Found
+- `html(s=>s.toLowerCase())` - custom transform function written in JavaScript for the content type
 - `htdocs` - path to local document root directory
+- `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
+- `/alias/=local/path` - partial mount alias
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
 - `--basic=user:password` - username and password for basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
@@ -55,9 +56,10 @@ weboverlay [s/regexp/replacement/g] [@type=function] [htdocs...] [https://hostna
 # content source layers: Local, Remote, and Transform
 layers:
     - s/regexp/replacement/g
-    - @text/html=s=>s.toLowerCase()
-    - /path/to/not/found=404
+    - html(s=>s.toLowerCase())
     - htdocs
+    - /path/to/not/found=404
+    - /alias/=local/path
     - https://upstream.host
 
 # username and password for basic authentication
