@@ -42,8 +42,6 @@ async function CLI(args: CLIOptions) {
     if (logfile) {
         const writable = fs.createWriteStream(logfile, {flags: "a"});
         options.logger = {log: (message: string) => writable.write(String(message).replace(/\n*$/, "\n"))};
-    } else {
-        options.logger = console;
     }
 
     weboverlay(options);

@@ -37,7 +37,7 @@ export interface WebOverlayOptions {
      */
     log?: string;
     /**
-     * `console`-style logging interface
+     * logging interface (default: `console`)
      */
     logger?: { log: (message: string) => void };
     /**
@@ -59,7 +59,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
     const {basic, cache, compress, json, log, port} = options;
     const layers = options.layers || [];
-    const logger = options.logger || {log: () => null};
+    const logger = options.logger || console;
     let locals = 0;
     let remotes = 0;
     let transforms = 0;
@@ -252,7 +252,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     }
 
     if (port) {
-        app.listen(+port, () => options.logger.log("port: " + port));
+        app.listen(+port, () => logger.log("port: " + port));
     }
 
     return app;

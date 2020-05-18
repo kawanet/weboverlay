@@ -25,7 +25,7 @@ export interface WebOverlayOptions {
      */
     log?: string;
     /**
-     * `console`-style logging interface
+     * logging interface (default: `console`)
      */
     logger?: {
         log: (message: string) => void;

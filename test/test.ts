@@ -8,7 +8,7 @@ const TITLE = __filename.split("/").pop();
 
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
-        logger: console,
+        // logger: console,
         log: "tiny",
         layers: [
             // apply for any text
