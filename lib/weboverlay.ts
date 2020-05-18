@@ -147,7 +147,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      */
 
     if (options.sed) {
-        applySed(options.sed);
+        applySed("/", options.sed);
     }
 
     /**
@@ -158,6 +158,13 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         path = path.replace(/^\s+/g, "");
         path = path.replace(/\s+$/g, "");
 
+        let mount = "/";
+
+        if (/^\/.*=/.test(path)) {
+            mount = path.replace(/\s*=.*$/, "");
+            path = path.replace(/^.*?=\s*/, "");
+        }
+
         // comment
         if (path[0] === "#") {
             return logger.log(path);
@@ -167,7 +174,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (path[0] === "s") {
             const delim = path[1];
             if (path.split(delim).length > 3) {
-                return applySed(path);
+                return applySed(mount, path);
             }
         }
 
@@ -178,34 +185,24 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             const esc = type.replace(/(\W)/g, "\\$1");
             const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
             const code = path.replace(/^[^(]+/, "");
-            logger.log("type: " + type);
-            logger.log("function: " + code);
+            logger.log("function: " + mount + " => " + type + " " + code);
             const fn = eval(code);
             if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
             transforms++;
 
-            return app.use(responseHandler()
+            return app.use(mount, responseHandler()
                 .if(res => re.test(String(res.getHeader("content-type"))))
                 .replaceString(str => fn(str)));
         }
 
-        let mount = "/";
-        let target: string;
-
-        if (path[0] === "/") {
-            const sp = path.split("=");
-            if (sp.length === 2) {
-                [mount, target] = sp;
-            }
-        }
-
         // /path/to/exclude=404
-        if (/^[1-5]\d\d$/.test(target)) {
-            logger.log("statusCode: " + mount + " => " + target);
-            app.use(path, requestHandler().use((req, res) => res.status(+target).send("")));
+        if (/^[1-5]\d\d$/.test(path)) {
+            logger.log("status: " + mount + " => " + path);
+            app.use(mount, requestHandler().use((req, res) => res.status(+path).send("")));
             return;
         }
 
+        // prettify JSON response
         if (locals + remotes === 0 && json >= 0) {
             app.use(responseHandler()
                 .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
@@ -239,16 +236,16 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                     }
                 }));
 
+            // origin
             logger.log("upstream: " + path);
             remotes++;
             return app.use(upstream(path, upstreamOptions));
         }
 
         // static document root
-        if (target == null) target = path;
-        logger.log("local: " + mount + " => " + target);
+        logger.log("local: " + mount + " => " + path);
         locals++;
-        return app.use(mount, express.static(target));
+        return app.use(mount, express.static(path));
     });
 
     if (locals + remotes === 0) {
@@ -262,9 +259,9 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     return app;
 
     // sed-style transform
-    function applySed(path: string) {
+    function applySed(mount: string, path: string) {
         const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
-        logger.log("transform: " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
+        logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
         try {
             const mw = sed(path);
             transforms++;

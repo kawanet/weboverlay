@@ -58,8 +58,8 @@ layers:
     - s/regexp/replacement/g
     - html(s=>s.toLowerCase())
     - htdocs
-    - /path/to/not/found=404
-    - /alias/=local/path
+    - /path/to/not/found = 404
+    - /alias/ = local/path
     - https://upstream.host
 
 # username and password for basic authentication
