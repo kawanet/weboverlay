@@ -34,7 +34,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 ```
 
 - `s/regexp/replacement/g` - `sed`-style transforms applied for every text contents
-- `html(s=>s.toLowerCase())` - custom transform function written in JavaScript for the content type
+- `html(s=>s.toLowerCase())` - custom transform JavaScript function for the content type
 - `htdocs` - path to local document root directory
 - `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
 - `/alias/=local/path` - partial mount alias
@@ -45,7 +45,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `--compress=identity` - no compression
 - `--config=weboverlay.yml` - path to load configuration in YAML
 - `--json` - prettify JSON response (default: disabled)
-- `--log=tiny` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
+- `--log=dev` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
 - `--logfile=weboverlay.log` - path to write log (default: STDOUT)
 - `--port=3000` - port number to listen (default: `3000`)
 - `--sed="s/regexp/replacement/g"` - another way to apply `sed`-style transform
@@ -76,7 +76,7 @@ compress: identity
 json: true
 
 # morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
-log: tiny
+log: dev
 
 # path to write log (default: STDOUT)
 logfile: weboverlay.log
@@ -86,7 +86,8 @@ port: 3000
 
 # another way to apply `sed`-style transforms
 sed: |
-    s/regexp/replacement/g
+    s/regexp/replacement/g;
+    s/one/more/g;
 ```
 
 ## API

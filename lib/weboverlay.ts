@@ -33,7 +33,8 @@ export interface WebOverlayOptions {
      */
     layers?: string[];
     /**
-     * morgan access log format: `combined`, `dev`, `tiny`, etc.
+     * access log format: `combined`, `dev`, etc. (default: `tiny`)
+     * @see https://www.npmjs.com/package/morgan
      */
     log?: string;
     /**
@@ -46,6 +47,7 @@ export interface WebOverlayOptions {
     port?: string;
     /**
      * `sed`-style transforms applied for every text contents
+     * @see https://www.npmjs.com/package/sed-lite
      */
     sed?: string;
 }
@@ -87,9 +89,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     const app = express();
 
-    if (log) {
-        app.use(morgan(log, morganOptions));
-    }
+    /**
+     * Access logging
+     */
+
+    app.use(morgan(log || "tiny", morganOptions));
 
     /**
      * Basic authentication
