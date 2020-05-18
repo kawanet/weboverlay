@@ -147,7 +147,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      */
 
     if (options.sed) {
-        applySed("/", options.sed);
+        useSed("/", options.sed);
     }
 
     /**
@@ -174,25 +174,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (path[0] === "s") {
             const delim = path[1];
             if (path.split(delim).length > 3) {
-                return applySed(mount, path);
+                return useSed(mount, path);
             }
         }
 
         // html(s=>s.toLowerCase())
         // text(require('jaconv').toHanAscii)
         if (/^\w.*\(.+\)$/.test(path)) {
-            const type = path.replace(/\(.*$/, "");
-            const esc = type.replace(/(\W)/g, "\\$1");
-            const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
-            const code = path.replace(/^[^(]+/, "");
-            logger.log("function: " + mount + " => " + type + " " + code);
-            const fn = eval(code);
-            if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
-            transforms++;
-
-            return app.use(mount, responseHandler()
-                .if(res => re.test(String(res.getHeader("content-type"))))
-                .replaceString(str => fn(str)));
+            return useFunction(mount, path);
         }
 
         // /path/to/exclude=404
@@ -211,35 +200,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
-            if (!remotes && cache) {
-                const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
-                logger.log("cache: " + cacheDir);
-                app.use(express.static(cacheDir));
-                app.use(tee(cacheDir, teeOptions));
-            }
-
-            if (!remotes && transforms) {
-                app.use(brotli.decompress());
-            }
-
-            // redirection
-            const host = path.split("/")[2];
-            app.use(responseHandler()
-                .if(res => (res.statusCode === 301 || res.statusCode === 302))
-                .getResponse(res => {
-                    const location = String(res.getHeader("location"));
-                    const destHost = location.split("/")[2];
-                    const destPath = location.replace(/^https?:\/\/[^\/]+\/?/, "/");
-                    if (destHost === host && destPath !== location) {
-                        res.setHeader("location", destPath)
-                        logger.log("location: " + destPath);
-                    }
-                }));
-
-            // origin
-            logger.log("upstream: " + path);
-            remotes++;
-            return app.use(upstream(path, upstreamOptions));
+            return useUpstream(mount, path);
         }
 
         // static document root
@@ -259,7 +220,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     return app;
 
     // sed-style transform
-    function applySed(mount: string, path: string) {
+    function useSed(mount: string, path: string) {
         const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
         logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
         try {
@@ -270,5 +231,55 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             logger.log("transform: " + (e && e.message || e));
             return;
         }
+    }
+
+    // html(s=>s.toLowerCase())
+    // text(require('jaconv').toHanAscii)
+    function useFunction(mount: string, path: string) {
+        const type = path.replace(/\(.*$/, "");
+        const esc = type.replace(/(\W)/g, "\\$1");
+        const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
+        const code = path.replace(/^[^(]+/, "");
+        logger.log("function: " + mount + " => " + type + " " + code);
+        const fn = eval(code);
+        if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
+        transforms++;
+
+        return app.use(mount, responseHandler()
+            .if(res => re.test(String(res.getHeader("content-type"))))
+            .replaceString(str => fn(str)));
+    }
+
+    // proxy to upstream server
+    function useUpstream(mount: string, path: string) {
+        if (!remotes && cache) {
+            const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
+            logger.log("cache: " + cacheDir);
+            app.use(express.static(cacheDir));
+            app.use(tee(cacheDir, teeOptions));
+        }
+
+        if (!remotes && transforms) {
+            app.use(brotli.decompress());
+        }
+
+        // redirection
+        const host = path.split("/")[2];
+        app.use(responseHandler()
+            .if(res => (res.statusCode === 301 || res.statusCode === 302))
+            .getResponse(res => {
+                const location = String(res.getHeader("location"));
+                const destHost = location.split("/")[2];
+                const destPath = location.replace(/^https?:\/\/[^\/]+\/?/, "/");
+                if (destHost === host && destPath !== location) {
+                    res.setHeader("location", destPath)
+                    logger.log("location: " + destPath);
+                }
+            }));
+
+        // origin
+        logger.log("upstream: " + path);
+        remotes++;
+        return app.use(upstream(path, upstreamOptions));
     }
 }
