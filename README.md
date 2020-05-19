@@ -48,7 +48,6 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `--log=dev` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
 - `--logfile=weboverlay.log` - path to write log (default: STDOUT)
 - `--port=3000` - port number to listen (default: `3000`)
-- `--sed="s/regexp/replacement/g"` - another way to apply `sed`-style transform
 
 ## YAML
 
@@ -83,11 +82,6 @@ logfile: weboverlay.log
 
 # port number to listen (default: `3000`)
 port: 3000
-
-# another way to apply `sed`-style transforms
-sed: |
-    s/regexp/replacement/g;
-    s/one/more/g;
 ```
 
 ## API

@@ -1,10 +1,12 @@
 // weboverlay.ts
 
 import * as express from "express";
+import {RequestHandler} from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
 
+import {ASYNC} from "async-request-handler";
 import * as brotli from "express-compress";
 import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
@@ -45,11 +47,6 @@ export interface WebOverlayOptions {
      * port number to listen
      */
     port?: string;
-    /**
-     * `sed`-style transforms applied for every text contents
-     * @see https://www.npmjs.com/package/sed-lite
-     */
-    sed?: string;
 }
 
 /**
@@ -64,7 +61,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     const logger = options.logger || console;
     let locals = 0;
     let remotes = 0;
-    let transforms = 0;
+    let transforms: RequestHandler;
 
     const agentOptions: http.AgentOptions = {
         keepAlive: true,
@@ -143,12 +140,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     ));
 
     /**
-     * `sed`-style transform
+     * Transforms
      */
 
-    if (options.sed) {
-        useSed("/", options.sed);
-    }
+    const transformHook = express.Router();
+    app.use(transformHook);
 
     /**
      * Layers
@@ -170,12 +166,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             return logger.log(path);
         }
 
-        // sed-style transform
-        if (path[0] === "s") {
-            const delim = path[1];
-            if (path.split(delim).length > 3) {
-                return useSed(mount, path);
-            }
+        // s/regexp/replacement/g
+        if (path[0] === "s" && path.split(path[1]).length > 3) {
+            const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
+            logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
+            return addTransform(mount, sed(path));
         }
 
         // html(s=>s.toLowerCase())
@@ -213,24 +208,25 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         throw new Error("No content source applied");
     }
 
+    // insert transforms before contents sources
+    if (transforms) {
+        transformHook.use(transforms);
+    }
+
     if (port) {
         app.listen(+port, () => logger.log("port: " + port));
     }
 
     return app;
 
-    // sed-style transform
-    function useSed(mount: string, path: string) {
-        const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
-        logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
-        try {
-            const mw = sed(path);
-            transforms++;
-            return app.use(mw);
-        } catch (e) {
-            logger.log("transform: " + (e && e.message || e));
-            return;
+    function addTransform(mount: string, handler: RequestHandler) {
+        // wrap with .use() if mount path is specified other than root
+        if (mount !== "/") {
+            handler = express.Router().use(mount, handler);
         }
+
+        // insert the handler at the first
+        transforms = transforms ? ASYNC(handler, transforms) : handler;
     }
 
     // html(s=>s.toLowerCase())
@@ -243,9 +239,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         logger.log("function: " + mount + " => " + type + " " + code);
         const fn = eval(code);
         if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
-        transforms++;
 
-        return app.use(mount, responseHandler()
+        return addTransform(mount, responseHandler()
             .if(res => re.test(String(res.getHeader("content-type"))))
             .replaceString(str => fn(str)));
     }
@@ -259,7 +254,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             app.use(tee(cacheDir, teeOptions));
         }
 
-        if (!remotes && transforms) {
+        if (!remotes && (transforms || compress)) {
             app.use(brotli.decompress());
         }
 
