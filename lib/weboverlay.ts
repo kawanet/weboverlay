@@ -278,6 +278,6 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // origin
         logger.log("upstream: " + path);
         remotes++;
-        return app.use(upstream(path, upstreamOptions));
+        return app.use(mount, upstream(path, upstreamOptions));
     }
 }
