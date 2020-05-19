@@ -147,6 +147,16 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     app.use(transformHook);
 
     /**
+     * prettify JSON response
+     */
+
+    if (json >= 0) {
+        app.use(responseHandler()
+            .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
+            .replaceString(str => JSON.stringify(JSON.parse(String(str).replace(/^\uFEFF+/, "")), null, json)));
+    }
+
+    /**
      * Layers
      */
 
@@ -184,13 +194,6 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             logger.log("status: " + mount + " => " + path);
             app.use(mount, requestHandler().use((req, res) => res.status(+path).send("")));
             return;
-        }
-
-        // prettify JSON response
-        if (locals + remotes === 0 && json >= 0) {
-            app.use(responseHandler()
-                .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
-                .replaceString(str => JSON.stringify(JSON.parse(String(str).replace(/^\uFEFF+/, "")), null, json)));
         }
 
         // proxy to upstream server
