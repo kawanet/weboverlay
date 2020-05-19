@@ -35,11 +35,6 @@ export interface WebOverlayOptions {
      * port number to listen
      */
     port?: string;
-    /**
-     * `sed`-style transforms applied for every text contents
-     * @see https://www.npmjs.com/package/sed-lite
-     */
-    sed?: string;
 }
 /**
  * Layered Hybrid Web Server: Local, Remote, and Transform
