@@ -39,6 +39,8 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
 - `/alias/=local/path` - partial mount alias
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
+- `//virtual.host.name/=htdocs` - name based virtual host to mount
+- `//proxy.host.name/=https://upstream.host` - name based virtual host to proxy
 - `--basic=user:password` - username and password for basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--compress=br` - force compression with Brotli
@@ -60,6 +62,8 @@ layers:
     - /path/to/not/found = 404
     - /alias/ = local/path
     - https://upstream.host
+    - //virtual.host.name/ = htdocs
+    - //proxy.host.name/ = https://upstream.host
 
 # username and password for basic authentication
 basic:
