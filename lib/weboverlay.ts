@@ -208,7 +208,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
-            return useUpstream(vHost, mount, path);
+            if (!+remotes) beforeUpstream();
+            useUpstream(vHost, mount, path);
+            remotes++;
+            return;
         }
 
         // static document root
@@ -268,8 +271,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             .replaceString(str => fn(str));
     }
 
-    // proxy to upstream server
-    function useUpstream(vHost: string, mount: string, path: string) {
+    // apply cache and decompression before first upstream connection
+    function beforeUpstream() {
         if (!remotes && cache) {
             const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
             logger.log("cache: " + cacheDir);
@@ -280,7 +283,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (!remotes && (transforms || compress)) {
             app.use(brotli.decompress());
         }
+    }
 
+    // proxy to upstream server
+    function useUpstream(vHost: string, mount: string, path: string) {
         // redirection
         const host = path.split("/")[2];
         app.use(wrapHandler(vHost, responseHandler()
@@ -297,7 +303,6 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // origin
         logger.log("upstream: " + path);
-        remotes++;
         return app.use(mount, wrapHandler(vHost, upstream(path, upstreamOptions)));
     }
 }
