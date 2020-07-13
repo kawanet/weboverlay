@@ -274,7 +274,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // apply cache and decompression before first upstream connection
     function beforeUpstream() {
-        if (!cache) {
+        if (cache) {
             const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
             logger.log("cache: " + cacheDir);
             app.use(express.static(cacheDir));
