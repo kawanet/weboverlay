@@ -13,6 +13,9 @@ describe(TITLE, () => {
         layers: [
             "# basic",
 
+            // empty
+            "",
+
             // apply for any text
             "s/Hello/Hi/",
 

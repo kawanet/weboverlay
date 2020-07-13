@@ -163,6 +163,9 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     layers.forEach(str => {
         const layer = new Layer(str);
 
+        // empty
+        if (layer.match(/^$/)) return;
+
         // comment
         if (layer.match(/^#/)) {
             return logger.log(layer.def);
