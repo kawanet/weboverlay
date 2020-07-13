@@ -164,20 +164,21 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         path = path.replace(/^\s+/g, "");
         path = path.replace(/\s+$/g, "");
 
-        let vHost;
-        let mount = "/";
+        const mount = new MountPosition();
 
         // /alias/ = local/path - partial mount alias
         if (/^\/.*=/.test(path)) {
-            mount = path.replace(/\s*=.*$/, "");
+            let alias = path.replace(/\s*=.*$/, "");
             path = path.replace(/^.*?=\s*/, "");
 
             // //virtual.host.name/ = htdocs - name based virtual host to mount
             // //proxy.host.name/ = https://upstream.host - name based virtual host to proxy
-            if (/^\/\/[^\/]+\//.test(mount)) {
-                vHost = mount.split("/")[2];
-                mount = mount.replace(/^\/\/[^\/]+/, "");
+            if (/^\/\/[^\/]+\//.test(alias)) {
+                mount.host = alias.split("/")[2];
+                alias = alias.replace(/^\/\/[^\/]+/, "");
             }
+
+            mount.path = alias;
         }
 
         // comment
@@ -189,27 +190,27 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         if (path[0] === "s" && path.split(path[1]).length > 3) {
             const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
             logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
-            return addTransform(vHost, mount, sed(path));
+            return addTransform(mount, sed(path));
         }
 
         // html(s=>s.toLowerCase())
         // text(require('jaconv').toHanAscii)
         if (/^\w.*\(.+\)$/.test(path)) {
-            return addTransform(vHost, mount, wrapFunction(mount, path));
+            return addTransform(mount, wrapFunction(mount, path));
         }
 
         // /path/to/exclude=404
         if (/^[1-5]\d\d$/.test(path)) {
             logger.log("status: " + mount + " => " + path);
             const handler = requestHandler().use((req, res) => res.status(+path).send(""));
-            app.use(mount, wrapHandler(vHost, handler));
+            app.use(mount.path, wrapHandler(mount, handler));
             return;
         }
 
         // proxy to upstream server
         if (path.search(/^https?:\/\//) === 0) {
             if (!+remotes) beforeUpstream();
-            useUpstream(vHost, mount, path);
+            useUpstream(mount, path);
             remotes++;
             return;
         }
@@ -217,7 +218,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // static document root
         logger.log("local: " + mount + " => " + path);
         locals++;
-        return app.use(mount, wrapHandler(vHost, express.static(path)));
+        return app.use(mount.path, wrapHandler(mount, express.static(path)));
     });
 
     if (locals + remotes === 0) {
@@ -235,21 +236,21 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     return app;
 
-    function addTransform(vHost: string, mount: string, handler: RequestHandler) {
+    function addTransform(mount: MountPosition, handler: RequestHandler) {
         // wrap with .use() if mount path is specified other than root
-        if (mount !== "/") {
-            handler = express.Router().use(mount, handler);
+        if (mount.path !== "/") {
+            handler = express.Router().use(mount.path, handler);
         }
 
-        handler = wrapHandler(vHost, handler);
+        handler = wrapHandler(mount, handler);
 
         // insert the handler at the first
         transforms = transforms ? ASYNC(handler, transforms) : handler;
     }
 
-    function wrapHandler(vHost: string, handler: RequestHandler) {
-        if (vHost) {
-            handler = requestHandler().for(req => req.hostname === vHost).use(handler);
+    function wrapHandler(mount: MountPosition, handler: RequestHandler) {
+        if (mount.host) {
+            handler = requestHandler().for(req => req.hostname === mount.host).use(handler);
         }
 
         return handler;
@@ -257,12 +258,12 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // html(s=>s.toLowerCase())
     // text(require('jaconv').toHanAscii)
-    function wrapFunction(mount: string, path: string) {
+    function wrapFunction(mount: MountPosition, path: string) {
         const type = path.replace(/\(.*$/, "");
         const esc = type.replace(/(\W)/g, "\\$1");
         const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
         const code = path.replace(/^[^(]+/, "");
-        logger.log("function: " + mount + " => " + type + " " + code);
+        logger.log("function: " + mount.path + " => " + type + " " + code);
         const fn = eval(code);
         if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
 
@@ -286,10 +287,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     }
 
     // proxy to upstream server
-    function useUpstream(vHost: string, mount: string, path: string) {
+    function useUpstream(mount: MountPosition, path: string) {
         // redirection
         const host = path.split("/")[2];
-        app.use(wrapHandler(vHost, responseHandler()
+        app.use(wrapHandler(mount, responseHandler()
             .if(res => (res.statusCode === 301 || res.statusCode === 302))
             .getResponse(res => {
                 const location = String(res.getHeader("location"));
@@ -303,6 +304,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
         // origin
         logger.log("upstream: " + path);
-        return app.use(mount, wrapHandler(vHost, upstream(path, upstreamOptions)));
+        return app.use(mount.path, wrapHandler(mount, upstream(path, upstreamOptions)));
     }
+}
+
+class MountPosition {
+    host: string;
+    path: string = "/";
 }
