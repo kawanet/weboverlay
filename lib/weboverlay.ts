@@ -250,7 +250,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     function wrapHandler(mount: MountPosition, handler: RequestHandler) {
         if (mount.host) {
-            handler = requestHandler().for(req => req.hostname === mount.host).use(handler);
+            handler = requestHandler().for(req => req.headers.host === mount.host).use(handler);
         }
 
         return handler;

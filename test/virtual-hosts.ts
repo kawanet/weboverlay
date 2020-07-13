@@ -21,6 +21,9 @@ describe(TITLE, () => {
             // not found
             "//example.org/sample/ = 404",
 
+            // bad request
+            "//example.org:3000/sample/ = 400",
+
             // forbidden
             "/sample/ = 403"
         ]
@@ -46,6 +49,14 @@ describe(TITLE, () => {
             await agent.get(path).set({host: host}).expect(200).expect(res => {
                 assert.ok(/Hi, weboverlay!/.test(res.text)); // transformed
             });
+        });
+    }
+
+    {
+        const host = "example.org:3000";
+        const path = "/sample/sample.html";
+        it(host + path, async () => {
+            await agent.get(path).set({host: host}).expect(400);
         });
     }
 
