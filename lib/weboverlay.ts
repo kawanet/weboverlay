@@ -59,8 +59,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     const {basic, cache, compress, json, log, port} = options;
     const layers = options.layers || [];
     const logger = options.logger || console;
-    let locals = 0;
-    let remotes = 0;
+    let localCount = 0;
+    let remoteCount = 0;
     let transforms: RequestHandler;
 
     const agentOptions: http.AgentOptions = {
@@ -160,16 +160,16 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * Layers
      */
 
-    layers.forEach(path => {
-        path = path.replace(/^\s+/g, "");
-        path = path.replace(/\s+$/g, "");
+    layers.forEach(layer => {
+        layer = layer.replace(/^\s+/g, "");
+        layer = layer.replace(/\s+$/g, "");
 
         const mount = new MountPosition();
 
         // /alias/ = local/path - partial mount alias
-        if (/^\/.*=/.test(path)) {
-            let alias = path.replace(/\s*=.*$/, "");
-            path = path.replace(/^.*?=\s*/, "");
+        if (/^\/.*=/.test(layer)) {
+            let alias = layer.replace(/\s*=.*$/, "");
+            layer = layer.replace(/^.*?=\s*/, "");
 
             // //virtual.host.name/ = htdocs - name based virtual host to mount
             // //proxy.host.name/ = https://upstream.host - name based virtual host to proxy
@@ -182,46 +182,46 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         }
 
         // comment
-        if (path[0] === "#") {
-            return logger.log(path);
+        if (layer[0] === "#") {
+            return logger.log(layer);
         }
 
         // s/regexp/replacement/g
-        if (path[0] === "s" && path.split(path[1]).length > 3) {
+        if (layer[0] === "s" && layer.split(layer[1]).length > 3) {
             const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
-            logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
-            return addTransform(mount, sed(path));
+            logger.log("transform: " + mount + " => " + layer.replace(/([\r\n\t])/g, match => esc[match] || match));
+            return addTransform(mount, sed(layer));
         }
 
         // html(s=>s.toLowerCase())
         // text(require('jaconv').toHanAscii)
-        if (/^\w.*\(.+\)$/.test(path)) {
-            return addTransform(mount, wrapFunction(mount, path));
+        if (/^\w.*\(.+\)$/.test(layer)) {
+            return addTransform(mount, wrapFunction(mount, layer));
         }
 
         // /path/to/exclude=404
-        if (/^[1-5]\d\d$/.test(path)) {
-            logger.log("status: " + mount + " => " + path);
-            const handler = requestHandler().use((req, res) => res.status(+path).send(""));
+        if (/^[1-5]\d\d$/.test(layer)) {
+            logger.log("status: " + mount + " => " + layer);
+            const handler = requestHandler().use((req, res) => res.status(+layer).send(""));
             app.use(mount.path, wrapHandler(mount, handler));
             return;
         }
 
         // proxy to upstream server
-        if (path.search(/^https?:\/\//) === 0) {
-            if (!+remotes) beforeUpstream();
-            useUpstream(mount, path);
-            remotes++;
+        if (layer.search(/^https?:\/\//) === 0) {
+            if (!+remoteCount) beforeUpstream();
+            useUpstream(mount, layer);
+            remoteCount++;
             return;
         }
 
         // static document root
-        logger.log("local: " + mount + " => " + path);
-        locals++;
-        return app.use(mount.path, wrapHandler(mount, express.static(path)));
+        logger.log("local: " + mount + " => " + layer);
+        localCount++;
+        return app.use(mount.path, wrapHandler(mount, express.static(layer)));
     });
 
-    if (locals + remotes === 0) {
+    if (localCount + remoteCount === 0) {
         throw new Error("No content source applied");
     }
 
@@ -258,14 +258,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // html(s=>s.toLowerCase())
     // text(require('jaconv').toHanAscii)
-    function wrapFunction(mount: MountPosition, path: string) {
-        const type = path.replace(/\(.*$/, "");
+    function wrapFunction(mount: MountPosition, func: string) {
+        const type = func.replace(/\(.*$/, "");
         const esc = type.replace(/(\W)/g, "\\$1");
         const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
-        const code = path.replace(/^[^(]+/, "");
+        const code = func.replace(/^[^(]+/, "");
         logger.log("function: " + mount + " => " + type + " " + code);
         const fn = eval(code);
-        if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
+        if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + func);
 
         return responseHandler()
             .if(res => re.test(String(res.getHeader("content-type"))))
@@ -274,22 +274,22 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // apply cache and decompression before first upstream connection
     function beforeUpstream() {
-        if (!remotes && cache) {
+        if (!cache) {
             const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
             logger.log("cache: " + cacheDir);
             app.use(express.static(cacheDir));
             app.use(tee(cacheDir, teeOptions));
         }
 
-        if (!remotes && (transforms || compress)) {
+        if (transforms || compress) {
             app.use(brotli.decompress());
         }
     }
 
     // proxy to upstream server
-    function useUpstream(mount: MountPosition, path: string) {
+    function useUpstream(mount: MountPosition, remote: string) {
         // redirection
-        const host = path.split("/")[2];
+        const host = remote.split("/")[2];
         app.use(wrapHandler(mount, responseHandler()
             .if(res => (res.statusCode === 301 || res.statusCode === 302))
             .getResponse(res => {
@@ -303,8 +303,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             })));
 
         // origin
-        logger.log("upstream: " + path);
-        return app.use(mount.path, wrapHandler(mount, upstream(path, upstreamOptions)));
+        logger.log("upstream: " + remote);
+        return app.use(mount.path, wrapHandler(mount, upstream(remote, upstreamOptions)));
     }
 }
 
