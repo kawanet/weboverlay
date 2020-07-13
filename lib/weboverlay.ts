@@ -263,7 +263,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         const esc = type.replace(/(\W)/g, "\\$1");
         const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
         const code = path.replace(/^[^(]+/, "");
-        logger.log("function: " + mount.path + " => " + type + " " + code);
+        logger.log("function: " + mount + " => " + type + " " + code);
         const fn = eval(code);
         if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
 
@@ -311,4 +311,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 class MountPosition {
     host: string;
     path: string = "/";
+
+    toString() {
+        return this.host ? this.host + this.path : this.path;
+    }
 }
