@@ -11,6 +11,8 @@ const documentRoot = __dirname + "/htdocs";
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
         layers: [
+            "# virtual-hosts",
+
             // transformed
             "//example.net/sample/ = s/Hello/Hi/",
             "//example.net/sample/ = " + documentRoot,
