@@ -31,7 +31,7 @@ export interface WebOverlayOptions {
      */
     json?: number;
     /**
-     * content source layers: Local, Remote, and Transform
+     * content source layers: local path, upstream proxy and content transform
      */
     layers?: string[];
     /**
@@ -50,7 +50,7 @@ export interface WebOverlayOptions {
 }
 
 /**
- * Layered Hybrid Web Server: Local, Remote, and Transform
+ * Layered Hybrid Web Server: local files, upstream proxy and content transform
  * @see https://github.com/kawanet/weboverlay
  */
 

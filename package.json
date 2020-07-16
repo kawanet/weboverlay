@@ -1,6 +1,6 @@
 {
   "name": "weboverlay",
-  "description": "Layered Hybrid Web Server: Local, Remote, and Transform",
+  "description": "Layered Hybrid Web Server: local files, upstream proxy and content transform",
   "version": "0.8.6",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
