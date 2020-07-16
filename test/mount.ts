@@ -9,6 +9,8 @@ const TITLE = __filename.split("/").pop();
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
         layers: [
+            "# mount",
+
             // transform only for path
             "/mount/ = s/Hello/Hi/",
 

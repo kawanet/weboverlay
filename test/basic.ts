@@ -11,6 +11,11 @@ describe(TITLE, () => {
         // logger: console,
         // log: "tiny",
         layers: [
+            "# basic",
+
+            // empty
+            "",
+
             // apply for any text
             "s/Hello/Hi/",
 

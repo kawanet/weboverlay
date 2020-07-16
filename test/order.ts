@@ -9,6 +9,7 @@ const TITLE = __filename.split("/").pop();
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
         layers: [
+            "# order",
             "s/foo/bar/g",
             "s/bar/buz/g",
             __dirname + "/htdocs",

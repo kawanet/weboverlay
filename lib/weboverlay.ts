@@ -31,7 +31,7 @@ export interface WebOverlayOptions {
      */
     json?: number;
     /**
-     * content source layers: Local, Remote, and Transform
+     * content source layers: local path, upstream proxy and content transform
      */
     layers?: string[];
     /**
@@ -50,7 +50,7 @@ export interface WebOverlayOptions {
 }
 
 /**
- * Layered Hybrid Web Server: Local, Remote, and Transform
+ * Layered Hybrid Web Server: local files, upstream proxy and content transform
  * @see https://github.com/kawanet/weboverlay
  */
 
@@ -59,8 +59,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     const {basic, cache, compress, json, log, port} = options;
     const layers = options.layers || [];
     const logger = options.logger || console;
-    let locals = 0;
-    let remotes = 0;
+    let localCount = 0;
+    let remoteCount = 0;
     let transforms: RequestHandler;
 
     const agentOptions: http.AgentOptions = {
@@ -80,7 +80,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         logger: {log: (mess: string) => logger.log("cache: " + mess)},
     };
 
-    const morganOptions: morgan.Options = {
+    const morganOptions: { stream: morgan.StreamOptions } = {
         stream: {write: (message: string) => logger.log(String(message).replace(/\n+$/, ""))}
     };
 
@@ -160,54 +160,55 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * Layers
      */
 
-    layers.forEach(path => {
-        path = path.replace(/^\s+/g, "");
-        path = path.replace(/\s+$/g, "");
+    layers.forEach(str => {
+        const layer = new Layer(str);
 
-        let mount = "/";
-
-        if (/^\/.*=/.test(path)) {
-            mount = path.replace(/\s*=.*$/, "");
-            path = path.replace(/^.*?=\s*/, "");
-        }
+        // empty
+        if (layer.match(/^$/)) return;
 
         // comment
-        if (path[0] === "#") {
-            return logger.log(path);
+        if (layer.match(/^#/)) {
+            return logger.log(layer.def);
         }
 
         // s/regexp/replacement/g
-        if (path[0] === "s" && path.split(path[1]).length > 3) {
+        if (layer.match(/^s/) && layer.def.split(layer.def[1]).length > 3) {
             const esc = {"\r": "\\r", "\n": "\\n", "\t": "\\t"} as any;
-            logger.log("transform: " + mount + " => " + path.replace(/([\r\n\t])/g, match => esc[match] || match));
-            return addTransform(mount, sed(path));
+            logger.log("transform: " + layer.toString().replace(/([\r\n\t])/g, match => esc[match] || match));
+            return addTransform(layer, sed(layer.def));
         }
 
         // html(s=>s.toLowerCase())
         // text(require('jaconv').toHanAscii)
-        if (/^\w.*\(.+\)$/.test(path)) {
-            return useFunction(mount, path);
+        if (layer.match(/^\w.*\(.+\)$/)) {
+            logger.log("function: " + layer);
+            return addTransform(layer, parseFunction(layer, layer.def));
         }
 
         // /path/to/exclude=404
-        if (/^[1-5]\d\d$/.test(path)) {
-            logger.log("status: " + mount + " => " + path);
-            app.use(mount, requestHandler().use((req, res) => res.status(+path).send("")));
+        if (layer.match(/^[1-5]\d\d$/)) {
+            logger.log("status: " + layer);
+            const handler = requestHandler().use((req, res) => res.status(+layer.def).send(""));
+            app.use(layer.path, layer.handler(handler));
             return;
         }
 
         // proxy to upstream server
-        if (path.search(/^https?:\/\//) === 0) {
-            return useUpstream(mount, path);
+        if (layer.match(/^https?:\/\//)) {
+            if (!+remoteCount) beforeUpstream();
+            logger.log("upstream: " + layer);
+            useUpstream(layer, layer.def);
+            remoteCount++;
+            return;
         }
 
         // static document root
-        logger.log("local: " + mount + " => " + path);
-        locals++;
-        return app.use(mount, express.static(path));
+        logger.log("local: " + layer);
+        localCount++;
+        return app.use(layer.path, layer.handler(express.static(layer.def)));
     });
 
-    if (locals + remotes === 0) {
+    if (localCount + remoteCount === 0) {
         throw new Error("No content source applied");
     }
 
@@ -222,11 +223,13 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     return app;
 
-    function addTransform(mount: string, handler: RequestHandler) {
+    function addTransform(mount: Layer, handler: RequestHandler) {
         // wrap with .use() if mount path is specified other than root
-        if (mount !== "/") {
-            handler = express.Router().use(mount, handler);
+        if (mount.path !== "/") {
+            handler = express.Router().use(mount.path, handler);
         }
+
+        handler = mount.handler(handler);
 
         // insert the handler at the first
         transforms = transforms ? ASYNC(handler, transforms) : handler;
@@ -234,36 +237,38 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // html(s=>s.toLowerCase())
     // text(require('jaconv').toHanAscii)
-    function useFunction(mount: string, path: string) {
-        const type = path.replace(/\(.*$/, "");
+    function parseFunction(layer: Layer, func: string) {
+        const type = func.replace(/\(.*$/, "");
         const esc = type.replace(/(\W)/g, "\\$1");
         const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
-        const code = path.replace(/^[^(]+/, "");
-        logger.log("function: " + mount + " => " + type + " " + code);
+        const code = func.replace(/^[^(]+/, "");
         const fn = eval(code);
-        if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + path);
+        if (!type || "function" !== typeof fn) throw new Error("Invalid function: " + func);
 
-        return addTransform(mount, responseHandler()
+        return responseHandler()
             .if(res => re.test(String(res.getHeader("content-type"))))
-            .replaceString(str => fn(str)));
+            .replaceString(str => fn(str));
     }
 
-    // proxy to upstream server
-    function useUpstream(mount: string, path: string) {
-        if (!remotes && cache) {
+    // apply cache and decompression before first upstream connection
+    function beforeUpstream() {
+        if (cache) {
             const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
             logger.log("cache: " + cacheDir);
             app.use(express.static(cacheDir));
             app.use(tee(cacheDir, teeOptions));
         }
 
-        if (!remotes && (transforms || compress)) {
+        if (transforms || compress) {
             app.use(brotli.decompress());
         }
+    }
 
+    // proxy to upstream server
+    function useUpstream(layer: Layer, remote: string) {
         // redirection
-        const host = path.split("/")[2];
-        app.use(responseHandler()
+        const host = remote.split("/")[2];
+        app.use(layer.handler(responseHandler()
             .if(res => (res.statusCode === 301 || res.statusCode === 302))
             .getResponse(res => {
                 const location = String(res.getHeader("location"));
@@ -273,11 +278,54 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                     res.setHeader("location", destPath)
                     logger.log("location: " + destPath);
                 }
-            }));
+            })));
 
         // origin
-        logger.log("upstream: " + path);
-        remotes++;
-        return app.use(mount, upstream(path, upstreamOptions));
+        return app.use(layer.path, layer.handler(upstream(remote, upstreamOptions)));
+    }
+}
+
+class Layer {
+    host: string;
+    path: string = "/";
+    def: string;
+
+    constructor(layer: string) {
+        layer = layer.replace(/^\s+/g, "");
+        layer = layer.replace(/\s+$/g, "");
+
+        // /alias/ = local/path - partial mount alias
+        if (/^\/.*=/.test(layer)) {
+            let path = layer.replace(/\s*=.*$/, "");
+            layer = layer.replace(/^.*?=\s*/, "");
+
+            // //virtual.host.name/ = htdocs - name based virtual host to mount
+            // //proxy.host.name/ = https://upstream.host - name based virtual host to proxy
+            if (/^\/\/[^\/]+\//.test(path)) {
+                this.host = path.split("/")[2];
+                path = path.replace(/^\/\/[^\/]+/, "");
+            }
+
+            this.path = path;
+        }
+
+        this.def = layer;
+    }
+
+    match(re: RegExp) {
+        return re.test(this.def);
+    }
+
+    handler(handler: RequestHandler) {
+        if (this.host) {
+            handler = requestHandler().for(req => req.headers.host === this.host).use(handler);
+        }
+
+        return handler;
+    }
+
+    toString() {
+        const mount = this.host ? ("//" + this.host + this.path) : this.path;
+        return mount + " = " + this.def;
     }
 }

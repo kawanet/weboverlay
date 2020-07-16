@@ -1,6 +1,6 @@
 # weboverlay
 
-Layered Hybrid Web Server: Local, Remote, and Transform
+Layered Hybrid Web Server: local files, upstream proxy and content transform
 
 [![Node.js CI](https://github.com/kawanet/weboverlay/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/weboverlay/actions/)
 [![npm version](https://badge.fury.io/js/weboverlay.svg)](https://www.npmjs.com/package/weboverlay)
@@ -39,6 +39,9 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
 - `/alias/=local/path` - partial mount alias
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
+- `//virtual.host.name/=htdocs` - name based virtual host for local files
+- `//proxy.host.name/=https://upstream.host` - name based virtual host for upstream proxy
+- `//transorm.host.name/=s/regexp/replacement/g` - name based virtual host for content transform
 - `--basic=user:password` - username and password for basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--compress=br` - force compression with Brotli
@@ -52,7 +55,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 ## YAML
 
 ```yaml
-# content source layers: Local, Remote, and Transform
+# content source layers: local path, upstream proxy and content transform
 layers:
     - s/regexp/replacement/g
     - html(s=>s.toLowerCase())
@@ -60,6 +63,9 @@ layers:
     - /path/to/not/found = 404
     - /alias/ = local/path
     - https://upstream.host
+    - //virtual.host.name/ = htdocs
+    - //proxy.host.name/ = https://upstream.host
+    - //transorm.host.name/ = s/regexp/replacement/g
 
 # username and password for basic authentication
 basic:
