@@ -5,8 +5,8 @@ import {RequestHandler} from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
+import * as serveIndex from "serve-index";
 
-import {ASYNC} from "async-request-handler";
 import * as brotli from "express-compress";
 import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
@@ -26,6 +26,10 @@ export interface WebOverlayOptions {
      * force compression format
      */
     compress?: string;
+    /**
+     * directory listing for local files (default: disabled)
+     */
+    index?: boolean | any;
     /**
      * prettify JSON response
      */
@@ -178,7 +182,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             return addTransform(layer, sed(layer.def));
         }
 
-        // html(s=>s.toLowerCase())
+        // html(s => s.toLowerCase())
         // text(require('jaconv').toHanAscii)
         if (layer.match(/^\w.*\(.+\)$/)) {
             logger.log("function: " + layer);
@@ -188,8 +192,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // /path/to/exclude=404
         if (layer.match(/^[1-5]\d\d$/)) {
             logger.log("status: " + layer);
-            const handler = requestHandler().use((req, res) => res.status(+layer.def).send(""));
-            app.use(layer.path, layer.handler(handler));
+            const status = +layer.def;
+            app.use(layer.path, layer.handler((req, res) => res.status(status).send("")));
             return;
         }
 
@@ -205,7 +209,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // static document root
         logger.log("local: " + layer);
         localCount++;
-        return app.use(layer.path, layer.handler(express.static(layer.def)));
+        app.use(layer.path, layer.handler(express.static(layer.def)));
+
+        // directory listing for local files
+        if (options.index) {
+            const indexOptions: serveIndex.Options = ("object" === typeof options.index) ? options.index : null;
+            app.use(layer.path, layer.handler(serveIndex(layer.def, indexOptions)));
+            // logger.log("index: " + layer);
+        }
     });
 
     if (localCount + remoteCount === 0) {
@@ -232,10 +243,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         handler = mount.handler(handler);
 
         // insert the handler at the first
-        transforms = transforms ? ASYNC(handler, transforms) : handler;
+        transforms = transforms ? requestHandler().use(handler, transforms) : handler;
     }
 
-    // html(s=>s.toLowerCase())
+    // html(s => s.toLowerCase())
     // text(require('jaconv').toHanAscii)
     function parseFunction(layer: Layer, func: string) {
         const type = func.replace(/\(.*$/, "");

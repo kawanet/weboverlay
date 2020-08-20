@@ -47,6 +47,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `--compress=br` - force compression with Brotli
 - `--compress=identity` - no compression
 - `--config=weboverlay.yml` - path to load configuration in YAML
+- `--index` - directory listing for local files (default: disabled)
 - `--json` - prettify JSON response (default: disabled)
 - `--log=dev` - morgan access log format: `combined`, `dev`, etc. (default: `tiny`)
 - `--logfile=weboverlay.log` - path to write log (default: STDOUT)
@@ -58,7 +59,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 # content source layers: local path, upstream proxy and content transform
 layers:
     - s/regexp/replacement/g
-    - html(s=>s.toLowerCase())
+    - html(s => s.toLowerCase())
     - htdocs
     - /path/to/not/found = 404
     - /alias/ = local/path
@@ -76,6 +77,9 @@ cache: cached
 
 # no compression
 compress: identity
+
+# directory listing for local files (default: disabled)
+index: true
 
 # prettify JSON response (default: disabled)
 json: true

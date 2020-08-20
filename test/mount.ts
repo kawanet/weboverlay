@@ -22,7 +22,10 @@ describe(TITLE, () => {
 
             // mount position
             "/mount/ = " + __dirname + "/htdocs"
-        ]
+        ],
+
+        // directory listing for local files
+        index: true,
     };
 
     const app = weboverlay(options)
@@ -55,6 +58,15 @@ describe(TITLE, () => {
         const path = "/error/";
         it(path, async () => {
             await agent.get(path).expect(500);
+        });
+    }
+
+    {
+        const path = "/mount/";
+        it(path, async () => {
+            await agent.get(path).expect(200).expect(res => {
+                assert.ok(/<a href="\/mount\/sample.html"/.test(res.text));
+            });
         });
     }
 });
