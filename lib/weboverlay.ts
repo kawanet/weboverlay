@@ -5,6 +5,7 @@ import {RequestHandler} from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
+import * as serveIndex from "serve-index";
 
 import {ASYNC} from "async-request-handler";
 import * as brotli from "express-compress";
@@ -26,6 +27,10 @@ export interface WebOverlayOptions {
      * force compression format
      */
     compress?: string;
+    /**
+     * directory listing for local files (default: disabled)
+     */
+    index?: boolean | any;
     /**
      * prettify JSON response
      */
@@ -178,7 +183,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             return addTransform(layer, sed(layer.def));
         }
 
-        // html(s=>s.toLowerCase())
+        // html(s => s.toLowerCase())
         // text(require('jaconv').toHanAscii)
         if (layer.match(/^\w.*\(.+\)$/)) {
             logger.log("function: " + layer);
@@ -205,7 +210,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // static document root
         logger.log("local: " + layer);
         localCount++;
-        return app.use(layer.path, layer.handler(express.static(layer.def)));
+        app.use(layer.path, layer.handler(express.static(layer.def)));
+
+        // directory listing for local files
+        if (options.index) {
+            const indexOptions: serveIndex.Options = ("object" === typeof options.index) ? options.index : null;
+            app.use(layer.path, layer.handler(serveIndex(layer.def, indexOptions)));
+            // logger.log("index: " + layer);
+        }
     });
 
     if (localCount + remoteCount === 0) {
@@ -235,7 +247,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         transforms = transforms ? ASYNC(handler, transforms) : handler;
     }
 
-    // html(s=>s.toLowerCase())
+    // html(s => s.toLowerCase())
     // text(require('jaconv').toHanAscii)
     function parseFunction(layer: Layer, func: string) {
         const type = func.replace(/\(.*$/, "");

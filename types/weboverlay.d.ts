@@ -13,6 +13,10 @@ export interface WebOverlayOptions {
      */
     compress?: string;
     /**
+     * directory listing for local files (default: disabled)
+     */
+    index?: boolean | any;
+    /**
      * prettify JSON response
      */
     json?: number;
