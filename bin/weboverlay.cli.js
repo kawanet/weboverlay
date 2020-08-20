@@ -10,8 +10,8 @@ const defaults = {
     port: "3000",
 };
 async function CLI(args) {
-    const { basic, cache, compress, config, json, log, port } = args;
-    const options = { cache, compress, json, log, port };
+    const { basic, cache, compress, config, index, json, log, port } = args;
+    const options = { cache, compress, index, json, log, port };
     if ("string" === typeof basic)
         options.basic = basic.split(",");
     options.layers = args["--"] || [];
