@@ -10,7 +10,6 @@
     "Yusuke Kawasaki <u-suke@kawa.net>"
   ],
   "dependencies": {
-    "async-request-handler": "^0.8.0",
     "express": "^4.17.1",
     "express-compress": "^0.8.0",
     "express-intercept": "^0.8.0",

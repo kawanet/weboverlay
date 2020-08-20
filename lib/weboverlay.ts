@@ -7,7 +7,6 @@ import * as https from "https";
 import * as morgan from "morgan";
 import * as serveIndex from "serve-index";
 
-import {ASYNC} from "async-request-handler";
 import * as brotli from "express-compress";
 import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
@@ -193,8 +192,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // /path/to/exclude=404
         if (layer.match(/^[1-5]\d\d$/)) {
             logger.log("status: " + layer);
-            const handler = requestHandler().use((req, res) => res.status(+layer.def).send(""));
-            app.use(layer.path, layer.handler(handler));
+            const status = +layer.def;
+            app.use(layer.path, layer.handler((req, res) => res.status(status).send("")));
             return;
         }
 
@@ -244,7 +243,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         handler = mount.handler(handler);
 
         // insert the handler at the first
-        transforms = transforms ? ASYNC(handler, transforms) : handler;
+        transforms = transforms ? requestHandler().use(handler, transforms) : handler;
     }
 
     // html(s => s.toLowerCase())
