@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: local files, upstream proxy and content transform",
-  "version": "0.8.6",
+  "version": "0.8.7",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
