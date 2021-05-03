@@ -192,6 +192,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // /path/to/exclude=404
         if (layer.match(/^[1-5]\d\d$/)) {
             logger.log("status: " + layer);
+            localCount++;
             const status = +layer.def;
             app.use(layer.path, layer.handler((req, res) => res.status(status).send("")));
             return;
