@@ -54,9 +54,7 @@
     "url": "git+https://github.com/kawanet/weboverlay.git"
   },
   "scripts": {
-    "build": "npm run build-lib && npm run build-types",
-    "build-lib": "./node_modules/.bin/tsc -p .",
-    "build-types": "./node_modules/.bin/tsc -p types",
+    "build": "./node_modules/.bin/tsc -p .",
     "fixpack": "fixpack",
     "mocha": "./node_modules/.bin/mocha -R spec test/*.js",
     "test": "npm run mocha",
