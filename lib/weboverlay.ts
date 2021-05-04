@@ -14,6 +14,10 @@ import {upstream, UpstreamOptions} from "express-upstream";
 
 import {WebOverlayOptions} from "../";
 
+const enum HTTP {
+    Unauthorized = 401,
+}
+
 /**
  * Layered Hybrid Web Server: local files, upstream proxy and content transform
  * @see https://github.com/kawanet/weboverlay
@@ -40,6 +44,12 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         httpsAgent: new https.Agent(agentOptions),
         ignoreStatus: /404/,
     };
+
+    // 301 Moved Permanently
+    // 302 Found
+    // 303 See Other
+    // 307 Temporary Redirect
+    const redirectStatus = /301|302|303|307/;
 
     const teeOptions: TeeOptions = {
         logger: {log: (mess: string) => logger.log("cache: " + mess)},
@@ -80,7 +90,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             const sent = String(req.headers.authorization).replace(/^basic\s+/i, "");
             delete req.headers.authorization;
             if (users[sent]) return next();
-            res.status(401).header("WWW-Authenticate", 'Basic realm="username and password"').end();
+            res.status(HTTP.Unauthorized).header("WWW-Authenticate", 'Basic realm="username and password"').end();
         }));
     }
 
@@ -239,7 +249,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         const host = remote.split("/")[2];
 
         return responseHandler()
-            .if(res => (res.statusCode === 301 || res.statusCode === 302))
+            .if(res => redirectStatus.test(String(res.statusCode)))
             .getResponse(res => {
                 const location = String(res.getHeader("location"));
                 const destHost = location.split("/")[2];
