@@ -35,9 +35,9 @@
   "files": [
     "LICENSE",
     "README.md",
-    "bin/",
-    "lib/",
-    "types/weboverlay.d.ts"
+    "bin/*.js",
+    "lib/*.js",
+    "types/*.d.ts"
   ],
   "homepage": "https://github.com/kawanet/weboverlay#readme",
   "keywords": [
