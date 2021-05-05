@@ -36,6 +36,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `s/regexp/replacement/g` - `sed`-style transforms applied for every text contents
 - `html(s=>s.toLowerCase())` - custom transform JavaScript function for the content type
 - `htdocs` - path to local document root directory
+- `^/path/with/regexp\.(html|css|js)$=htdocs` - regexp to match with the path specified
 - `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
 - `/alias/=local/path` - partial mount alias
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
@@ -61,6 +62,7 @@ layers:
     - s/regexp/replacement/g
     - html(s => s.toLowerCase())
     - htdocs
+    - ^/path/with/regexp\.(html|css|js)$ = htdocs
     - /path/to/not/found = 404
     - /alias/ = local/path
     - https://upstream.host
@@ -113,7 +115,7 @@ for more detail.
 
 The MIT License (MIT)
 
-Copyright (c) 2020 Yusuke Kawasaki
+Copyright (c) 2020-2021 Yusuke Kawasaki
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
