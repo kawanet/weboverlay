@@ -157,7 +157,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         // text(require('jaconv').toHanAscii)
         if (layer.match(/^\w.*\(.+\)$/)) {
             logger.log("function: " + layer);
-            return prependTransform(layer.handler(parseFunction(layer, layer.def)));
+            return prependTransform(layer.handler(parseFunction(layer.def)));
         }
 
         // /path/to/exclude=404
@@ -165,7 +165,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             logger.log("status: " + layer);
             localCount++;
             const status = +layer.def;
-            app.use(layer.handler((req, res) => res.status(status).send("")));
+            app.use(layer.handler((_, res) => res.status(status).send("")));
             return;
         }
 
@@ -217,7 +217,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // html(s => s.toLowerCase())
     // text(require('jaconv').toHanAscii)
-    function parseFunction(layer: Layer, func: string): RequestHandler {
+    function parseFunction(func: string): RequestHandler {
         const type = func.replace(/\(.*$/, "");
         const esc = type.replace(/(\W)/g, "\\$1");
         const re = new RegExp("(^|\\W)" + esc + "(\\W|$)", "i");
