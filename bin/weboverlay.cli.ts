@@ -5,7 +5,7 @@ import * as YAML from "yaml";
 
 const argv = require("process.argv")(process.argv.slice(2));
 
-import {weboverlay, WebOverlayOptions} from "../lib/weboverlay";
+import {weboverlay, WebOverlayOptions} from "../";
 
 interface CLIOptions extends WebOverlayOptions {
     config?: string;

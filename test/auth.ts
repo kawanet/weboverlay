@@ -1,7 +1,7 @@
 #!/usr/bin/env mocha -R spec
 
 import * as supertest from "supertest";
-import {weboverlay, WebOverlayOptions} from "../lib/weboverlay";
+import {weboverlay, WebOverlayOptions} from "../";
 
 const TITLE = __filename.split("/").pop();
 
