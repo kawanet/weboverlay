@@ -119,7 +119,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * prettify JSON response
      */
 
-    if (json >= 0) {
+    if (json) {
         app.use(responseHandler()
             .if(res => /^application\/json/.test(String(res.getHeader("content-type"))))
             .replaceString(str => JSON.stringify(JSON.parse(String(str).replace(/^\uFEFF+/, "")), null, json)));

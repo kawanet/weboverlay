@@ -12,11 +12,12 @@ const TITLE = __filename.split("/").pop();
 
 describe(TITLE, () => {
 
-    [2, 4, 8].forEach(spacer => {
+    [2, "   ", 4, "\t"].forEach(json => {
+        const spacer = +json ? " ".repeat(+json) : json;
         const options: WebOverlayOptions = {
-            json: spacer,
+            json: json,
             layers: [
-                `# json: ${spacer}`,
+                `# json: ${json}`,
                 `${__dirname}/htdocs`,
             ]
         };
@@ -26,14 +27,14 @@ describe(TITLE, () => {
         const path = "/sample.json";
         const expect = require("./htdocs/sample.json");
 
-        it(`json: ${spacer}`, async () => {
+        it(JSON.stringify({json}), async () => {
             await agent.get(path)
                 .responseType("text")
                 .expect(200)
                 .then(res => {
                     const body = String(res.body);
                     assert.deepEqual(JSON.parse(body), expect);
-                    assert.equal(body.split(/",[\r\n]*( *)"/)[1], " ".repeat(spacer));
+                    assert.equal(body.split(/",[\r\n]*(\s*)"/)[1], spacer);
                 });
         });
     });
