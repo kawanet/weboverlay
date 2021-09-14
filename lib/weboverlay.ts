@@ -11,6 +11,7 @@ import {requestHandler, responseHandler} from "express-intercept";
 import {sed} from "express-sed";
 import {tee, TeeOptions} from "express-tee";
 import {upstream, UpstreamOptions} from "express-upstream";
+import * as iconv from "iconv-lite";
 
 import {WebOverlayOptions} from "../";
 
@@ -198,7 +199,10 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
 
     // insert transforms before contents sources
     if (transforms) {
+        transformHook.use(encodeBuffer);
         transformHook.use(transforms);
+        transformHook.use(decodeBuffer);
+        transformHook.use(detectXmlEncoding);
     }
 
     if (port) {
@@ -261,6 +265,63 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             });
     }
 }
+
+type MicroRes = { getHeader: (key: string) => any };
+const getContentType = (res: MicroRes) => String(res.getHeader("content-type"));
+const testContentType = (res: MicroRes, re: RegExp) => re.test(getContentType(res));
+const getCharset = (str: string) => str.split(/^.*?\Wcharset=["']?([^"']+)/)[1];
+const getEncoding = (str: string) => str.split(/^.*?\Wencoding=["']?([^"']+)/)[1];
+
+/**
+ * encode response buffer from UTF-8 to given charset
+ */
+
+const encodeBuffer = responseHandler()
+    .if(res => testContentType(res, /^(text|application)\//))
+    .if(res => testContentType(res, /\Wcharset=/))
+    .replaceBuffer((buf, _, res) => {
+        const charset = getCharset(getContentType(res));
+        if (charset && !/^utf-8/i.test(charset)) {
+            buf = iconv.encode(buf.toString(), charset);
+        }
+        return buf;
+    });
+
+/**
+ * decode response buffer from given charset to UTF-8
+ */
+
+const decodeBuffer = responseHandler()
+    .if(res => testContentType(res, /^(text|application)\//))
+    .if(res => testContentType(res, /\Wcharset=/))
+    .replaceBuffer((buf, _, res) => {
+        const charset = getCharset(getContentType(res));
+        if (charset && !/^utf-8/i.test(charset)) {
+            buf = Buffer.from(iconv.decode(buf, charset));
+        }
+        return buf;
+    });
+
+/**
+ * auto detect XML encoding
+ */
+
+const detectXmlEncoding = responseHandler()
+    .if(res => testContentType(res, /\Wxml(\W|$)/))
+    .if(res => !testContentType(res, /\Wcharset=/))
+    .getBuffer((buf, _, res) => {
+        const length = Math.min(buf.length, 2000);
+        let str = "";
+        for (let i = 0; i < length; i++) {
+            const c = buf[i];
+            if (i > 0x7F) break; // non US-ASCII
+            str += String.fromCharCode(c);
+            if (i === 0x3E) break; // >
+        }
+        const type = getContentType(res);
+        const encoding = getEncoding(str);
+        res.setHeader("content-type", `${type}; charset=${encoding}`);
+    });
 
 class Layer {
     private host: string;
