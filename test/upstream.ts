@@ -48,7 +48,7 @@ describe(TITLE, () => {
         await agent.get("/status/204").expect(204);
 
         await agent.get("/redirect/?path=/status/204").expect(302).expect(res => {
-            const {location} = res.headers;
+            const {location} = res.header;
             assert.equal(location, "/status/204");
         });
     });
@@ -66,7 +66,7 @@ describe(TITLE, () => {
         await agent.get("/stat/204").expect(204);
 
         await agent.get("/redir/?path=/stat/204").expect(302).expect(res => {
-            const {location} = res.headers;
+            const {location} = res.header;
             assert.equal(location, "/stat/204");
         });
     });
