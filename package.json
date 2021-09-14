@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: local files, upstream proxy and content transform",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
@@ -58,6 +58,7 @@
     "build": "./node_modules/.bin/tsc -p . && ./node_modules/.bin/tsc types/*.d.ts",
     "fixpack": "fixpack",
     "mocha": "./node_modules/.bin/mocha -R spec test/*.js",
+    "prepack": "npm run build && npm test",
     "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
   },
