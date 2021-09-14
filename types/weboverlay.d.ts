@@ -31,7 +31,7 @@ export interface WebOverlayOptions {
     /**
      * prettify JSON response
      */
-    json?: number;
+    json?: number | string;
 
     /**
      * content source layers: local path, upstream proxy and content transform

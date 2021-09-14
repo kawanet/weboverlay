@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: local files, upstream proxy and content transform",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
@@ -16,21 +16,22 @@
     "express-sed": "^0.8.3",
     "express-tee": "^0.8.1",
     "express-upstream": "^0.8.3",
+    "iconv-lite": "^0.6.3",
     "morgan": "^1.10.0",
     "process.argv": "^0.6.0",
     "serve-index": "^1.9.1",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.11",
-    "@types/mocha": "^8.2.2",
-    "@types/morgan": "^1.9.2",
-    "@types/node": "^14.14.44",
-    "@types/serve-index": "^1.7.30",
+    "@types/express": "^4.17.13",
+    "@types/mocha": "^9.0.0",
+    "@types/morgan": "^1.9.3",
+    "@types/node": "^16.9.1",
+    "@types/serve-index": "^1.9.1",
     "@types/supertest": "^2.0.11",
-    "mocha": "^8.3.2",
-    "supertest": "^6.1.3",
-    "typescript": "^4.2.4"
+    "mocha": "^9.1.1",
+    "supertest": "^6.1.6",
+    "typescript": "^4.4.3"
   },
   "files": [
     "LICENSE",
@@ -57,6 +58,7 @@
     "build": "./node_modules/.bin/tsc -p . && ./node_modules/.bin/tsc types/*.d.ts",
     "fixpack": "fixpack",
     "mocha": "./node_modules/.bin/mocha -R spec test/*.js",
+    "prepack": "npm run build && npm test",
     "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
   },
