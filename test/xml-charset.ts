@@ -18,7 +18,8 @@ describe(TITLE, () => {
     const app = weboverlay({
         layers: [
             `# xml-charset`,
-            `s/０１２３４５６７８９/９８７６５４３２１０/`,
+            `s/０１２３４/９８７６５/`,
+            `xml(src => src.replace(/５６７８９/, "４３２１０"))`,
             `${__dirname}/htdocs`,
         ],
     });
