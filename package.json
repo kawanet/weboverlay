@@ -1,7 +1,7 @@
 {
   "name": "weboverlay",
   "description": "Layered Hybrid Web Server: local files, upstream proxy and content transform",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "author": "Yusuke Kawasaki <u-suke@kawa.net>",
   "bin": {
     "weboverlay": "bin/weboverlay.cli.js"
@@ -11,6 +11,7 @@
   ],
   "dependencies": {
     "express": "^4.17.1",
+    "express-charset": "^0.1.0",
     "express-compress": "^0.8.0",
     "express-intercept": "^0.8.9",
     "express-sed": "^0.8.3",
