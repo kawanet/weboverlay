@@ -9,7 +9,7 @@ import {weboverlay} from "../";
 const TITLE = __filename.split("/").pop();
 
 // assert.match
-const assert_match = ((str: string, re: RegExp): void => {
+const assert_match = assert.match || ((str: string, re: RegExp): void => {
     assert.ok(re.test(str), JSON.stringify({expected: re.source, actual: str}));
 });
 

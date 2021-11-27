@@ -12,7 +12,9 @@ const TITLE = __filename.split("/").pop();
 describe(TITLE, () => {
     const options: WebOverlayOptions = {
         basic: [
+            // echo -n 'test1:first' | base64
             "test1:first", // "dGVzdDE6Zmlyc3Q="
+            // echo -n 'test2:second' | base64
             "dGVzdDI6c2Vjb25k" // "test2:second"
         ],
         layers: [
