@@ -11,7 +11,7 @@
   ],
   "dependencies": {
     "express": "^4.17.1",
-    "express-charset": "^0.1.0",
+    "express-charset": "^0.1.1",
     "express-compress": "^0.8.0",
     "express-intercept": "^0.8.9",
     "express-sed": "^0.8.3",
