@@ -67,7 +67,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * Access logging
      */
 
-    app.use(morgan(log || "tiny", morganOptions));
+    app.use(morgan(log || "tiny", morganOptions) as RequestHandler);
 
     /**
      * Basic authentication
@@ -238,7 +238,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
     // apply cache and decompression before first upstream connection
     function beforeUpstream() {
         if (cache) {
-            const cacheDir = cache.replace(/[^\.\/]+\/\.\.\//g, "") || ".";
+            const cacheDir = cache.replace(/[^\/]+\/\.\.\//g, "") || ".";
             logger.log("cache: " + cacheDir);
             app.use(express.static(cacheDir));
             app.use(tee(cacheDir, teeOptions));

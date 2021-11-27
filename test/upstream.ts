@@ -2,6 +2,7 @@
 
 import {strict as assert} from "assert";
 import * as express from "express";
+import {RequestHandler} from "express";
 import * as morgan from "morgan";
 import * as net from "net";
 import * as supertest from "supertest";
@@ -16,7 +17,7 @@ describe(TITLE, () => {
 
     before(async () => {
         const upstream = express();
-        upstream.use(morgan("tiny"));
+        upstream.use(morgan("tiny") as RequestHandler);
         const server = upstream.listen(0);
         onEnd = () => server.close();
         port = (server.address() as net.AddressInfo).port;
