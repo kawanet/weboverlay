@@ -16,12 +16,12 @@
     "express-intercept": "^0.8.9",
     "express-sed": "^0.8.3",
     "express-tee": "^0.8.1",
-    "express-upstream": "^0.8.3",
+    "express-upstream": "^0.8.4",
     "iconv-lite": "^0.6.3",
     "morgan": "^1.10.0",
     "process.argv": "^0.6.0",
     "serve-index": "^1.9.1",
-    "serve-static-git": "^0.1.0",
+    "serve-static-git": "^0.1.1",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
