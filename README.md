@@ -23,6 +23,9 @@ weboverlay 's#/example.com/#/127.0.0.1:3000/#g' https://example.com --cache=cach
 # replace product names on a corporate website 
 weboverlay "s/MacBook/Surface/g" https://www.apple.com --cache=cached --port=3000
 
+# mount git repository
+weboverlay ../repo1/.git:htdocs
+
 # open browser
 open http://127.0.0.1:3000/
 ```
@@ -38,6 +41,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `htdocs` - path to local document root directory
 - `^/path/with/regexp\.(html|css|js)$=htdocs` - regexp to match with the path specified
 - `/path/to/not/found=404` - path to always respond the status: `404 Not Found`
+- `path/to/.git:htdocs` - mount `htdocs` directory from `.git` repository
 - `/alias/=local/path` - partial mount alias
 - `https://upstream.host` - URL to remote upstream origin server: `http://` or `https://`
 - `//virtual.host.name/=htdocs` - name based virtual host for local files
@@ -62,6 +66,7 @@ layers:
     - s/regexp/replacement/g
     - html(s => s.toLowerCase())
     - htdocs
+    - path/to/.git:htdocs
     - ^/path/with/regexp\.(html|css|js)$ = htdocs
     - /path/to/not/found = 404
     - /alias/ = local/path
@@ -109,6 +114,7 @@ for more detail.
 - https://github.com/kawanet/express-sed
 - https://github.com/kawanet/express-tee
 - https://github.com/kawanet/express-upstream
+- https://github.com/kawanet/serve-static-git
 - https://github.com/kawanet/weboverlay
 
 ## LICENSE

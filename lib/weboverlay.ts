@@ -13,6 +13,7 @@ import {tee, TeeOptions} from "express-tee";
 import {upstream, UpstreamOptions} from "express-upstream";
 import {expressCharset} from "express-charset";
 import * as iconv from "iconv-lite";
+import {serveStaticGit} from "serve-static-git";
 
 import {WebOverlayOptions} from "../";
 
@@ -178,6 +179,16 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             app.use(layer.handler(redirection(layer.def)));
             app.use(layer.handler(upstream(layer.def, upstreamOptions)));
             remoteCount++;
+            return;
+        }
+
+        // git
+        if (layer.match(/\.git:/)) {
+            logger.log("git: " + layer);
+            localCount++;
+            const repo = layer.def.replace(/:.*$/, "")
+            const root = layer.def.replace(/^.*:/, "").replace(/\/*$/, "/")
+            app.use(serveStaticGit({repo, root}));
             return;
         }
 
