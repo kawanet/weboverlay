@@ -188,7 +188,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             localCount++;
             const repo = layer.def.replace(/:.*$/, "")
             const root = layer.def.replace(/^.*:/, "").replace(/\/*$/, "/")
-            app.use(serveStaticGit({repo, root}));
+            app.use(layer.handler(serveStaticGit({repo, root})));
             return;
         }
 

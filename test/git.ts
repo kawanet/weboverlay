@@ -8,7 +8,7 @@ const TITLE = __filename.split("/").pop();
 
 describe(TITLE, () => {
 
-    it("packed.git", async () => {
+    it("packed.git:public", async () => {
 
         const options: WebOverlayOptions = {
             // logger: console,
@@ -57,5 +57,18 @@ describe(TITLE, () => {
 
         await agent.get("/sample.html").expect(200);
         await agent.get("/not-found.html").expect(404);
+    })
+
+    it("/mount/ = packed.git:public/dir/", async () => {
+        const options: WebOverlayOptions = {
+            layers: [
+                `/mount/ = ${__dirname}/git/packed.git:public/dir/`,
+            ]
+        };
+
+        const app = weboverlay(options)
+        const agent = supertest(app);
+        await agent.get("/mount/file.html").expect(200);
+        await agent.get("/dir/file.html").expect(404);
     })
 })
