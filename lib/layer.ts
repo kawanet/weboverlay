@@ -7,6 +7,7 @@ import {requestHandler} from "express-intercept";
 
 export class Layer {
     private host: string;
+    private hostRE: RegExp;
     private path: string;
     private pathRE: RegExp;
     def: string;
@@ -25,7 +26,7 @@ export class Layer {
             // //virtual.host.name/ = htdocs - name based virtual host to mount
             // //proxy.host.name/ = https://upstream.host - name based virtual host to proxy
             if (/^\/\/[^\/]+\//.test(path)) {
-                layer.host = path.split("/")[2];
+                layer.setHost(path.split("/")[2]);
                 layer.path = path.replace(/^\/\/[^\/]+/, "");
 
             } else if (/^\^/.test(path)) {
@@ -42,12 +43,24 @@ export class Layer {
         return layer;
     }
 
+    private setHost(host: string) {
+        if (/[*?]/.test(host)) {
+            this.hostRE = wildcardToRE(host, "[^.:]");
+        } else {
+            this.host = host;
+        }
+    }
+
     match(re: RegExp) {
         return re.test(this.def);
     }
 
     handler(handler: RequestHandler) {
         // wrap with requestHandler to enable Named Virtual Hosts
+        if (this.hostRE) {
+            handler = requestHandler().for(req => this.hostRE.test(req.headers.host)).use(handler);
+        }
+
         if (this.host) {
             handler = requestHandler().for(req => req.headers.host === this.host).use(handler);
         }
@@ -73,3 +86,19 @@ export class Layer {
         return `${host}${path} = ${def}`;
     }
 }
+
+const wildcardToRE = (str: string, allow: string): RegExp => {
+    str = str.replace(/(\?|\*\*?|[^\w\u0100-\uFFFF?*]+)/g, c => {
+        if (c === "?") {
+            return allow;
+        } else if (c === "*") {
+            return allow + `*`;
+        } else if (c === "**") {
+            return `.*`;
+        } else {
+            return `\\` + c;
+        }
+    });
+
+    return new RegExp(`^${str}$`);
+};
