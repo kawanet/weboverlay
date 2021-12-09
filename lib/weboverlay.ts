@@ -1,4 +1,6 @@
-// weboverlay.ts
+/**
+ * https://github.com/kawanet/weboverlay
+ */
 
 import * as express from "express";
 import {RequestHandler, Router} from "express";
@@ -12,10 +14,11 @@ import {sed} from "express-sed";
 import {tee, TeeOptions} from "express-tee";
 import {upstream, UpstreamOptions} from "express-upstream";
 import {expressCharset} from "express-charset";
-import * as iconv from "iconv-lite";
 import {serveStaticGit} from "serve-static-git";
 
-import {WebOverlayOptions} from "../";
+import type {WebOverlayOptions} from "../";
+import {Layer} from "./layer";
+import {decodeBuffer, encodeBuffer} from "./charset";
 
 const enum HTTP {
     Unauthorized = 401,
@@ -275,109 +278,5 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
                     logger.log("location: " + destPath);
                 }
             });
-    }
-}
-
-type MicroRes = { getHeader: (key: string) => any };
-const getContentType = (res: MicroRes) => String(res.getHeader("content-type"));
-const testContentType = (res: MicroRes, re: RegExp) => re.test(getContentType(res));
-const getCharset = (str: string) => str.split(/^.*?\Wcharset=["']?([^"']+)/)[1];
-
-/**
- * encode response buffer from UTF-8 to given charset
- */
-
-const encodeBuffer = responseHandler()
-    .if(res => testContentType(res, /^(text|application)\//))
-    .if(res => testContentType(res, /\Wcharset=/))
-    .replaceBuffer((buf, _, res) => {
-        const charset = getCharset(getContentType(res));
-        if (charset && !/^utf-8/i.test(charset)) {
-            buf = iconv.encode(buf.toString(), charset);
-        }
-        return buf;
-    });
-
-/**
- * decode response buffer from given charset to UTF-8
- */
-
-const decodeBuffer = responseHandler()
-    .if(res => testContentType(res, /^(text|application)\//))
-    .if(res => testContentType(res, /\Wcharset=/))
-    .replaceBuffer((buf, _, res) => {
-        const charset = getCharset(getContentType(res));
-        if (charset && !/^utf-8/i.test(charset)) {
-            buf = Buffer.from(iconv.decode(buf, charset));
-        }
-        return buf;
-    });
-
-class Layer {
-    private host: string;
-    private path: string;
-    private regexp: RegExp;
-    def: string;
-
-    static from(def: string) {
-        def = def.replace(/^\s+/g, "");
-        def = def.replace(/\s+$/g, "");
-
-        const layer = new Layer();
-
-        // /alias/ = local/path - partial mount alias
-        if (/^[\/^].*=/.test(def)) {
-            const path = def.replace(/\s*=.*$/, ""); // before =
-            def = def.replace(/^.*?=\s*/, ""); // after =
-
-            // //virtual.host.name/ = htdocs - name based virtual host to mount
-            // //proxy.host.name/ = https://upstream.host - name based virtual host to proxy
-            if (/^\/\/[^\/]+\//.test(path)) {
-                layer.host = path.split("/")[2];
-                layer.path = path.replace(/^\/\/[^\/]+/, "");
-
-            } else if (/^\^/.test(path)) {
-                // ^/regexp/ = def
-                layer.regexp = new RegExp(path);
-
-            } else {
-                // /normal/path/ = def
-                layer.path = path;
-            }
-        }
-
-        layer.def = def;
-        return layer;
-    }
-
-    match(re: RegExp) {
-        return re.test(this.def);
-    }
-
-    handler(handler: RequestHandler) {
-        // wrap with requestHandler to enable Named Virtual Hosts
-        if (this.host) {
-            handler = requestHandler().for(req => req.headers.host === this.host).use(handler);
-        }
-
-        if (this.regexp) {
-            handler = requestHandler().for(req => this.regexp.test(req.path)).use(handler);
-        }
-
-        // wrap with .use() if mount path is specified other than root
-        if (this.path) {
-            handler = Router().use(this.path, handler);
-        }
-
-        return handler;
-    }
-
-    toString() {
-        let {host, path, regexp, def} = this;
-        host = host ? "//" + host : "";
-        if (!path && !regexp) path = "/";
-        if (!path && regexp) path = String(regexp).replace(/^\/|\/$/sg, "");
-        if (!def) def = "";
-        return `${host}${path} = ${def}`;
     }
 }
