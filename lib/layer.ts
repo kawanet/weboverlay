@@ -8,7 +8,7 @@ import {requestHandler} from "express-intercept";
 export class Layer {
     private host: string;
     private path: string;
-    private regexp: RegExp;
+    private pathRE: RegExp;
     def: string;
 
     static from(def: string) {
@@ -30,7 +30,7 @@ export class Layer {
 
             } else if (/^\^/.test(path)) {
                 // ^/regexp/ = def
-                layer.regexp = new RegExp(path);
+                layer.pathRE = new RegExp(path);
 
             } else {
                 // /normal/path/ = def
@@ -52,8 +52,8 @@ export class Layer {
             handler = requestHandler().for(req => req.headers.host === this.host).use(handler);
         }
 
-        if (this.regexp) {
-            handler = requestHandler().for(req => this.regexp.test(req.path)).use(handler);
+        if (this.pathRE) {
+            handler = requestHandler().for(req => this.pathRE.test(req.path)).use(handler);
         }
 
         // wrap with .use() if mount path is specified other than root
@@ -65,10 +65,10 @@ export class Layer {
     }
 
     toString() {
-        let {host, path, regexp, def} = this;
+        let {host, path, pathRE, def} = this;
         host = host ? "//" + host : "";
-        if (!path && !regexp) path = "/";
-        if (!path && regexp) path = String(regexp).replace(/^\/|\/$/sg, "");
+        if (!path && !pathRE) path = "/";
+        if (!path && pathRE) path = String(pathRE).replace(/^\/|\/$/sg, "");
         if (!def) def = "";
         return `${host}${path} = ${def}`;
     }
