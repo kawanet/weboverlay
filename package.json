@@ -13,7 +13,7 @@
     "express": "^4.17.1",
     "express-charset": "^0.1.1",
     "express-compress": "^0.8.0",
-    "express-intercept": "^0.8.9",
+    "express-intercept": "^0.8.10",
     "express-sed": "^0.8.3",
     "express-tee": "^0.8.1",
     "express-upstream": "^0.8.4",

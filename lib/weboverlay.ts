@@ -20,6 +20,7 @@ import type {WebOverlayOptions} from "../";
 import {Layer} from "./layer";
 import {decodeBuffer, encodeBuffer} from "./charset";
 import {fileLogger} from "./logfile";
+import {etagHandler} from "./etag";
 
 const enum HTTP {
     Unauthorized = 401,
@@ -100,6 +101,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             res.status(HTTP.Unauthorized).header("WWW-Authenticate", 'Basic realm="username and password"').end();
         }));
     }
+
+    /**
+     * ETag:
+     */
+    app.use(etagHandler());
 
     /**
      * Compression
