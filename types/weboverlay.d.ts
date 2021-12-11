@@ -59,6 +59,5 @@ export interface WebOverlayOptions {
     /**
      * port number to listen
      */
-    port?: string;
     port?: number | string;
 }

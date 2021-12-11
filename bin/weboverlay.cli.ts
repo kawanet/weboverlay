@@ -13,7 +13,7 @@ interface CLIOptions extends WebOverlayOptions {
 
 const defaults: WebOverlayOptions = {
     log: "tiny",
-    port: "3000",
+    port: 3000,
 };
 
 async function CLI(args: CLIOptions) {
