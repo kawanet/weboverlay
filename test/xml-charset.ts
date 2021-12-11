@@ -8,11 +8,6 @@ import {weboverlay} from "../";
 
 const TITLE = __filename.split("/").pop();
 
-// assert.match
-const assert_match = assert.match || ((str: string, re: RegExp): void => {
-    assert.ok(re.test(str), JSON.stringify({expected: re.source, actual: str}));
-});
-
 describe(TITLE, () => {
 
     const app = weboverlay({
@@ -42,7 +37,7 @@ describe(TITLE, () => {
 
                     const buf = Buffer.isBuffer(res.body) ? res.body : Buffer.from(res.body);
                     const body = iconv.decode(buf, "utf-8");
-                    assert_match(body, /９８７６５４３２１０/);
+                    assert.match(body, /９８７６５４３２１０/);
                 });
         });
     }
@@ -63,7 +58,7 @@ describe(TITLE, () => {
 
                     const buf = Buffer.isBuffer(res.body) ? res.body : Buffer.from(res.body);
                     const body = iconv.decode(buf, "Shift_JIS");
-                    assert_match(body, /９８７６５４３２１０/);
+                    assert.match(body, /９８７６５４３２１０/);
                 });
         });
     }
@@ -84,7 +79,7 @@ describe(TITLE, () => {
 
                     const buf = Buffer.isBuffer(res.body) ? res.body : Buffer.from(res.body);
                     const body = iconv.decode(buf, "EUC-JP");
-                    assert_match(body, /９８７６５４３２１０/);
+                    assert.match(body, /９８７６５４３２１０/);
                 });
         });
     }

@@ -19,6 +19,8 @@ import {serveStaticGit} from "serve-static-git";
 import type {WebOverlayOptions} from "../";
 import {Layer} from "./layer";
 import {decodeBuffer, encodeBuffer} from "./charset";
+import {fileLogger} from "./logfile";
+import {etagHandler} from "./etag";
 
 const enum HTTP {
     Unauthorized = 401,
@@ -31,9 +33,9 @@ const enum HTTP {
 
 export function weboverlay(options: WebOverlayOptions): express.Express {
     if (!options) options = {} as WebOverlayOptions;
-    const {basic, cache, compress, json, log, port} = options;
+    const {basic, cache, compress, json, log, logfile, port} = options;
     const layers = options.layers || [];
-    const logger = options.logger || console;
+    const logger = logfile ? fileLogger(logfile) : (options.logger || console);
     let localCount = 0;
     let remoteCount = 0;
     let transforms: RequestHandler;
@@ -99,6 +101,11 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             res.status(HTTP.Unauthorized).header("WWW-Authenticate", 'Basic realm="username and password"').end();
         }));
     }
+
+    /**
+     * ETag:
+     */
+    app.use(etagHandler());
 
     /**
      * Compression
