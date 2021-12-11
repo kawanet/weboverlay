@@ -9,7 +9,6 @@ import {weboverlay, WebOverlayOptions} from "../";
 
 interface CLIOptions extends WebOverlayOptions {
     config?: string;
-    logfile?: string;
 }
 
 const defaults: WebOverlayOptions = {
@@ -32,16 +31,6 @@ async function CLI(args: CLIOptions) {
         const yaml = await fs.promises.readFile(config, "utf-8");
         const data = YAML.parse(yaml) as CLIOptions;
         Object.keys(data).forEach((key: keyof CLIOptions) => (options as any)[key] = data[key]);
-    }
-
-    /**
-     * --logfile=weboverlay.log
-     */
-
-    const logfile = args.logfile || options.logfile;
-    if (logfile) {
-        const writable = fs.createWriteStream(logfile, {flags: "a"});
-        options.logger = {log: (message: string) => writable.write(String(message).replace(/\n*$/, "\n"))};
     }
 
     weboverlay(options);

@@ -52,6 +52,11 @@ export interface WebOverlayOptions {
     };
 
     /**
+     * logging to file
+     */
+    logfile?: string;
+
+    /**
      * port number to listen
      */
     port?: string;
