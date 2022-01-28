@@ -173,6 +173,19 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
             return prependTransform(layer.handler(parseFunction(layer.def)));
         }
 
+        // (req,res,next) => res.send("...")
+        if (layer.match(/^\(.+\)$/)) {
+            logger.log("middleware: " + layer);
+            localCount++;
+            const fn = eval(layer.def);
+            const args = fn?.length;
+            if ("function" !== typeof fn && 2 <= args && args <= 4) {
+                throw new Error("Invalid middleware: " + layer.def);
+            }
+            app.use(layer.handler(fn));
+            return;
+        }
+
         // /path/to/exclude=404
         if (layer.match(/^[1-5]\d\d$/)) {
             logger.log("status: " + layer);
