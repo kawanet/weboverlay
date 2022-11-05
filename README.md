@@ -26,6 +26,9 @@ weboverlay "s/MacBook/Surface/g" https://www.apple.com --cache=cached --port=300
 # mount git repository
 weboverlay ../repo1/.git:htdocs
 
+# mount raw Express middleware
+weboverlay "(req, res, next) => res.send('OK\n')"
+
 # open browser
 open http://127.0.0.1:3000/
 ```
@@ -47,6 +50,7 @@ weboverlay [s/regexp/replacement/g] [type(function)] [htdocs...] [https://hostna
 - `//virtual.host.name/=htdocs` - name based virtual host for local files
 - `//proxy.host.name/=https://upstream.host` - name based virtual host for upstream proxy
 - `//transorm.host.name/=s/regexp/replacement/g` - name based virtual host for content transform
+- `(req, res, next) => res.send('OK\n')` - raw Express middleware
 - `--basic=user:password` - username and password for basic authentication
 - `--cache=cached` - path to directory to cache remote content (default: disabled)
 - `--compress=br` - force compression with Brotli
@@ -74,6 +78,7 @@ layers:
     - //virtual.host.name/ = htdocs
     - //proxy.host.name/ = https://upstream.host
     - //transorm.host.name/ = s/regexp/replacement/g
+    - (req, res, next) => res.send('OK\n')
 
 # username and password for basic authentication
 basic:
@@ -121,7 +126,7 @@ for more detail.
 
 The MIT License (MIT)
 
-Copyright (c) 2020-2021 Yusuke Kawasaki
+Copyright (c) 2020-2022 Yusuke Kawasaki
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
