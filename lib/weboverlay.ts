@@ -32,9 +32,8 @@ const enum HTTP {
  */
 
 export const weboverlay: typeof types.weboverlay = options => {
-    if (!options) options = {} as types.WebOverlayOptions;
-    const {basic, cache, compress, json, log, logfile, port} = options;
-    const layers = options.layers || [];
+    const {basic, cache, compress, index, json, layers, log, logfile, port} = options;
+
     const logger = logfile ? fileLogger(logfile) : (options.logger || console);
     let localCount = 0;
     let remoteCount = 0;
@@ -148,7 +147,7 @@ export const weboverlay: typeof types.weboverlay = options => {
      * Layers
      */
 
-    layers.forEach(str => {
+    layers?.forEach(str => {
         const layer = Layer.from(str);
 
         // empty
@@ -221,8 +220,8 @@ export const weboverlay: typeof types.weboverlay = options => {
         app.use(layer.handler(express.static(layer.def)));
 
         // directory listing for local files
-        if (options.index) {
-            const indexOptions: serveIndex.Options = ("object" === typeof options.index) ? options.index : null;
+        if (index) {
+            const indexOptions: serveIndex.Options = ("object" === typeof index) ? index : null;
             app.use(layer.handler(serveIndex(layer.def, indexOptions)));
             // logger.log("index: " + layer);
         }
