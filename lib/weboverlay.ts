@@ -3,7 +3,7 @@
  */
 
 import * as express from "express";
-import {RequestHandler, Router} from "express";
+import type {RequestHandler} from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
@@ -16,7 +16,7 @@ import {upstream, UpstreamOptions} from "express-upstream";
 import {expressCharset} from "express-charset";
 import {serveStaticGit} from "serve-static-git";
 
-import type {WebOverlayOptions} from "../";
+import type * as types from "../types/weboverlay";
 import {Layer} from "./layer";
 import {decodeBuffer, encodeBuffer} from "./charset";
 import {fileLogger} from "./logfile";
@@ -31,8 +31,8 @@ const enum HTTP {
  * @see https://github.com/kawanet/weboverlay
  */
 
-export function weboverlay(options: WebOverlayOptions): express.Express {
-    if (!options) options = {} as WebOverlayOptions;
+export const weboverlay: typeof types.weboverlay = options => {
+    if (!options) options = {} as types.WebOverlayOptions;
     const {basic, cache, compress, json, log, logfile, port} = options;
     const layers = options.layers || [];
     const logger = logfile ? fileLogger(logfile) : (options.logger || console);
@@ -141,7 +141,7 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * Transforms
      */
 
-    const transformHook = Router();
+    const transformHook = express.Router();
     app.use(transformHook);
 
     /**
