@@ -3,7 +3,7 @@
  */
 
 import * as express from "express";
-import {RequestHandler, Router} from "express";
+import type {RequestHandler} from "express";
 import * as http from "http";
 import * as https from "https";
 import * as morgan from "morgan";
@@ -16,7 +16,7 @@ import {upstream, UpstreamOptions} from "express-upstream";
 import {expressCharset} from "express-charset";
 import {serveStaticGit} from "serve-static-git";
 
-import type {WebOverlayOptions} from "../";
+import type * as types from "../types/weboverlay";
 import {Layer} from "./layer";
 import {decodeBuffer, encodeBuffer} from "./charset";
 import {fileLogger} from "./logfile";
@@ -31,10 +31,9 @@ const enum HTTP {
  * @see https://github.com/kawanet/weboverlay
  */
 
-export function weboverlay(options: WebOverlayOptions): express.Express {
-    if (!options) options = {} as WebOverlayOptions;
-    const {basic, cache, compress, json, log, logfile, port} = options;
-    const layers = options.layers || [];
+export const weboverlay: typeof types.weboverlay = options => {
+    const {basic, cache, compress, index, json, layers, log, logfile, port} = options;
+
     const logger = logfile ? fileLogger(logfile) : (options.logger || console);
     let localCount = 0;
     let remoteCount = 0;
@@ -141,14 +140,14 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
      * Transforms
      */
 
-    const transformHook = Router();
+    const transformHook = express.Router();
     app.use(transformHook);
 
     /**
      * Layers
      */
 
-    layers.forEach(str => {
+    layers?.forEach(str => {
         const layer = Layer.from(str);
 
         // empty
@@ -221,8 +220,8 @@ export function weboverlay(options: WebOverlayOptions): express.Express {
         app.use(layer.handler(express.static(layer.def)));
 
         // directory listing for local files
-        if (options.index) {
-            const indexOptions: serveIndex.Options = ("object" === typeof options.index) ? options.index : null;
+        if (index) {
+            const indexOptions: serveIndex.Options = ("object" === typeof index) ? index : null;
             app.use(layer.handler(serveIndex(layer.def, indexOptions)));
             // logger.log("index: " + layer);
         }

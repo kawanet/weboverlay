@@ -3,9 +3,9 @@
  * @see https://github.com/kawanet/weboverlay
  */
 
-import * as express from "express";
+import type * as express from "express";
 
-export declare function weboverlay(options: WebOverlayOptions): express.Express;
+export declare const weboverlay: (options: WebOverlayOptions) => express.Express;
 
 export interface WebOverlayOptions {
     /**
